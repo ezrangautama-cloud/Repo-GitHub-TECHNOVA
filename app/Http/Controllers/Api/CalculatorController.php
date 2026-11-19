@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CalculateElectricalRequest;
+use App\Http\Requests\CalculateLedResistorRequest;
 use App\Http\Requests\CalculateSolarRequest;
 use App\Services\CalculatorService;
 use Illuminate\Http\JsonResponse;
@@ -12,18 +13,13 @@ class CalculatorController extends Controller
 {
     /**
      * CalculatorController constructor.
-     *
-     * @param CalculatorService $calculatorService
      */
     public function __construct(
         private readonly CalculatorService $calculatorService
-    ) {
-    }
+    ) {}
 
     /**
      * Get default appliance presets untuk electrical calculator.
-     *
-     * @return JsonResponse
      */
     public function electricalPresets(): JsonResponse
     {
@@ -37,8 +33,6 @@ class CalculatorController extends Controller
 
     /**
      * Get default config presets untuk solar PV calculator.
-     *
-     * @return JsonResponse
      */
     public function solarPresets(): JsonResponse
     {
@@ -51,10 +45,20 @@ class CalculatorController extends Controller
     }
 
     /**
+     * Get default config presets untuk resistor calculator.
+     */
+    public function ledResistorPresets(): JsonResponse
+    {
+        $presets = $this->calculatorService->getLedResistorPresets();
+
+        return response()->json([
+            'message' => 'LED Resistor calculator presets berhasil diambil.',
+            'data' => $presets,
+        ]);
+    }
+
+    /**
      * untuk electrical calc.
-     *
-     * @param CalculateElectricalRequest $request
-     * @return JsonResponse
      */
     public function calculateElectrical(CalculateElectricalRequest $request): JsonResponse
     {
@@ -69,9 +73,6 @@ class CalculatorController extends Controller
 
     /**
      * untuk solar PV.
-     *
-     * @param CalculateSolarRequest $request
-     * @return JsonResponse
      */
     public function calculateSolar(CalculateSolarRequest $request): JsonResponse
     {
@@ -95,6 +96,27 @@ class CalculatorController extends Controller
 
         return response()->json([
             'message' => 'Solar PV calculation completed successfully.',
+            'data' => $result,
+        ]);
+    }
+
+    /**
+     * untuk resistor calc.
+     */
+    public function calculateLedResistor(CalculateLedResistorRequest $request): JsonResponse
+    {
+        $supplyVoltage = (float) $request->validated('supply_voltage');
+        $ledForwardVoltage = (float) $request->validated('led_forward_voltage');
+        $ledCurrentMa = (float) $request->validated('led_current_ma');
+
+        $result = $this->calculatorService->calculateLedResistor(
+            supplyVoltage: $supplyVoltage,
+            ledForwardVoltage: $ledForwardVoltage,
+            ledCurrentMa: $ledCurrentMa
+        );
+
+        return response()->json([
+            'message' => 'LED Resistor calculation completed successfully.',
             'data' => $result,
         ]);
     }

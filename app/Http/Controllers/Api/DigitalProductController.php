@@ -14,9 +14,6 @@ class DigitalProductController extends Controller
 {
     /**
      * Tampilkan daftar produk digital.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
@@ -38,7 +35,7 @@ class DigitalProductController extends Controller
 
         // Filter by level
         if ($request->filled('level')) {
-            $query->where('level', 'like', '%' . $request->input('level') . '%');
+            $query->where('level', 'like', '%'.$request->input('level').'%');
         }
 
         // Sorting
@@ -88,10 +85,6 @@ class DigitalProductController extends Controller
 
     /**
      * tampilkan detail digital product.
-     *
-     * @param Request $request
-     * @param int|string $id
-     * @return JsonResponse
      */
     public function show(Request $request, int|string $id): JsonResponse
     {
@@ -149,10 +142,6 @@ class DigitalProductController extends Controller
 
     /**
      * Unduh file produk digital secara aman.
-     *
-     * @param Request $request
-     * @param int|string $id
-     * @return BinaryFileResponse|JsonResponse
      */
     public function download(Request $request, int|string $id): BinaryFileResponse|JsonResponse
     {
@@ -194,7 +183,7 @@ class DigitalProductController extends Controller
         }
 
         $extension = pathinfo($product->file_url, PATHINFO_EXTENSION);
-        $safeFilename = Str::slug($product->nama_produk) . ($extension ? '.' . $extension : '');
+        $safeFilename = Str::slug($product->nama_produk).($extension ? '.'.$extension : '');
         $filePath = Storage::disk('local')->path($product->file_url);
 
         return response()->download($filePath, $safeFilename);

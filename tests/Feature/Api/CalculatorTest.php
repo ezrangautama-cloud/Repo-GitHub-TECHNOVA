@@ -174,4 +174,109 @@ class CalculatorTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['energi_harian_wh', 'v_sys', 'jenis_baterai']);
     }
+
+    public function test_can_get_led_resistor_presets(): void
+    {
+        $response = $this->getJson('/api/tools/led-resistor/presets');
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'message',
+                'data' => [
+                    'opsi_tegangan_sumber',
+                    'opsi_warna_led',
+                    'deret_resistor_standar',
+                ],
+            ])
+            ->assertJsonFragment(['warna' => 'Merah (Red)', 'vf_default' => 2.0]);
+    }
+
+    public function test_can_calculate_led_resistor_matching_partner_example(): void
+    {
+        // Partner specification example:
+        // Vs = 5V, Vf = 2V (LED Merah), If = 10mA
+        // Expected: R = 300 Ohm, Recommended = 330 Ohm, I_aktual = 9.1 mA
+        $payload = [
+            'supply_voltage' => 5,
+            'led_forward_voltage' => 2,
+            'led_current_ma' => 10,
+        ];
+
+        $response = $this->postJson('/api/tools/calculate/led-resistor', $payload);
+
+        $response->assertOk()
+            ->assertJson([
+                'data' => [
+                    'supply_voltage_v' => 5,
+                    'led_forward_voltage_v' => 2,
+                    'led_current_ma' => 10,
+                    'calculated_resistor_ohm' => 300,
+                    'calculated_resistor_formatted' => '300 Ω',
+                    'recommended_resistor_ohm' => 330,
+                    'recommended_resistor_formatted' => '330 Ω',
+                    'actual_current_ma' => 9.1,
+                    'recommended_wattage_rating' => '1/8 W (atau 1/4 W standar)',
+                    'color_bands_4_band' => ['Orange', 'Orange', 'Brown', 'Gold'],
+                ],
+            ]);
+    }
+
+    public function test_can_calculate_led_resistor_high_wattage(): void
+    {
+        // Vs = 24V, Vf = 2V, If = 25mA
+        // R = 22 / 0.025 = 880 Ohm -> Next E12 is 1000 Ohm (1 kOhm)
+        $payload = [
+            'supply_voltage' => 24,
+            'led_forward_voltage' => 2,
+            'led_current_ma' => 25,
+        ];
+
+        $response = $this->postJson('/api/tools/calculate/led-resistor', $payload);
+
+        $response->assertOk()
+            ->assertJson([
+                'data' => [
+                    'calculated_resistor_ohm' => 880,
+                    'recommended_resistor_ohm' => 1000,
+                    'recommended_resistor_formatted' => '1 kΩ',
+                    'actual_current_ma' => 22,
+                    'power_dissipation_watt' => 0.484,
+                    'recommended_wattage_rating' => '1 W',
+                    'color_bands_4_band' => ['Brown', 'Black', 'Red', 'Gold'],
+                ],
+            ]);
+    }
+
+    public function test_led_resistor_calculation_validates_supply_greater_than_forward_voltage(): void
+    {
+        // Vs < Vf
+        $responseLess = $this->postJson('/api/tools/calculate/led-resistor', [
+            'supply_voltage' => 2.0,
+            'led_forward_voltage' => 3.2,
+            'led_current_ma' => 20,
+        ]);
+
+        $responseLess->assertStatus(422)
+            ->assertJsonValidationErrors(['supply_voltage']);
+
+        // Vs == Vf
+        $responseEqual = $this->postJson('/api/tools/calculate/led-resistor', [
+            'supply_voltage' => 3.0,
+            'led_forward_voltage' => 3.0,
+            'led_current_ma' => 20,
+        ]);
+
+        $responseEqual->assertStatus(422)
+            ->assertJsonValidationErrors(['supply_voltage']);
+
+        // Zero current (prevent division by zero)
+        $responseZeroCurrent = $this->postJson('/api/tools/calculate/led-resistor', [
+            'supply_voltage' => 5,
+            'led_forward_voltage' => 2,
+            'led_current_ma' => 0,
+        ]);
+
+        $responseZeroCurrent->assertStatus(422)
+            ->assertJsonValidationErrors(['led_current_ma']);
+    }
 }

@@ -42,6 +42,22 @@ class User extends Authenticatable
     }
 
     /**
+     * pesan lead yang dikirimkan user.
+     */
+    public function pesanLeads()
+    {
+        return $this->hasMany(PesanLead::class, 'id_user');
+    }
+
+    /**
+     * riwayat transaksi yang dilakukan user.
+     */
+    public function transaksis()
+    {
+        return $this->hasMany(Transaksi::class, 'id_user');
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

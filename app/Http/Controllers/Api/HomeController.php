@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use App\Models\Portofolio;
 
 class HomeController extends Controller
@@ -17,8 +15,8 @@ class HomeController extends Controller
         return response()->json([
             'message' => 'Homepage data retrieved successfully',
             'data' => [
-                'featured_portofolios' => $portofolios
-            ]
+                'featured_portofolios' => $portofolios,
+            ],
         ]);
     }
 }
