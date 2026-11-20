@@ -25,12 +25,16 @@ Route::get('/profil', function () {
 })->name('profil');
 
 Route::get('/kursus-saya', function () {
-    return redirect()->route('profil');
-});
+    return Inertia::render('KursusSaya');
+})->name('kursus-saya');
+
+Route::get('/kursus-saya/materi', function () {
+    return Inertia::render('MateriBelajar');
+})->name('kursus-saya.materi');
 
 Route::get('/layanan-saya', function () {
-    return redirect()->route('profil');
-});
+    return Inertia::render('LayananSaya');
+})->name('layanan-saya');
 
 Route::get('/permintaan-layanan', function () {
     return redirect()->route('profil');
@@ -43,6 +47,19 @@ Route::get('/notifikasi', function () {
 Route::get('/pengaturan', function () {
     return redirect()->route('admin.pengaturan');
 });
+
+// Public Catalog Routes
+Route::get('/kursus', function () {
+    return Inertia::render('Kursus');
+})->name('kursus');
+
+Route::get('/proyek', function () {
+    return Inertia::render('Proyek');
+})->name('proyek');
+
+Route::get('/produk-digital', function () {
+    return Inertia::render('ProdukDigital');
+})->name('produk-digital');
 
 // Course and Product Detail Routes
 Route::get('/kursus/pengantar-iot', function () {
@@ -88,13 +105,30 @@ Route::prefix('admin')->name('admin.')->group(function () {
     })->name('produk-detail');
 
     Route::get('/produk-digital', function () {
-        return Inertia::render('Admin/ProdukDetail');
+        return Inertia::render('Admin/ProdukDigital');
     })->name('produk-digital');
+
+    Route::get('/proyek', function () {
+        return Inertia::render('Admin/Proyek');
+    })->name('proyek');
+
+    Route::get('/pesanan', function () {
+        return Inertia::render('Admin/Pesanan');
+    })->name('pesanan');
 
     // Fallbacks for other sidebar menu links in development
     Route::get('/{menu}', function ($menu) {
         if ($menu === 'kursus') {
             return Inertia::render('Admin/Kursus');
+        }
+        if ($menu === 'produk-digital') {
+            return Inertia::render('Admin/ProdukDigital');
+        }
+        if ($menu === 'proyek') {
+            return Inertia::render('Admin/Proyek');
+        }
+        if ($menu === 'pesanan') {
+            return Inertia::render('Admin/Pesanan');
         }
         if ($menu === 'prospek') {
             return Inertia::render('Admin/Prospek');
@@ -105,7 +139,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         if ($menu === 'pengaturan') {
             return Inertia::render('Admin/Pengaturan');
         }
-        if ($menu === 'produk-digital' || $menu === 'produk-detail') {
+        if ($menu === 'produk-detail') {
             return Inertia::render('Admin/ProdukDetail');
         }
         return redirect()->route('admin.kursus');

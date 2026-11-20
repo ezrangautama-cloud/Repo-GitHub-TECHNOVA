@@ -1,50 +1,118 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from '@inertiajs/react';
 
-export default function Navbar() {
+export default function Navbar({ active = 'beranda' }) {
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    const navLinks = [
+        { key: 'beranda', label: 'Beranda', href: '/' },
+        { key: 'layanan', label: 'Layanan', href: '/#layanan' },
+        { key: 'kursus', label: 'Kursus', href: '/kursus' },
+        { key: 'produk-digital', label: 'Produk Digital', href: '/produk-digital' },
+        { key: 'proyek', label: 'Proyek', href: '/proyek' },
+        { key: 'tentang', label: 'Tentang', href: '/#tentang' },
+    ];
+
     return (
-        <header class="bg-white text-slate-900 border-b border-slate-100 sticky top-0 z-50">
-            <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                
+        <header className="bg-white text-slate-900 border-b border-slate-200/80 sticky top-0 z-50 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+            <div className="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
                 {/* Brand Logo */}
-                <Link href="/" class="flex items-center gap-3">
-                    <div class="w-9 h-9 relative flex items-center justify-center">
-                        <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-[0_0_10px_rgba(0,240,255,0.8)]">
+                <Link href="/" className="flex items-center gap-3 group">
+                    <div className="w-8 h-8 relative flex items-center justify-center shrink-0">
+                        <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-[0_0_10px_rgba(0,240,255,0.85)]">
                             <polygon points="40,30 60,20 80,30 80,50 60,60 40,50" fill="#00F0FF" />
                             <polygon points="120,30 140,20 160,30 160,50 140,60 120,50" fill="#00F0FF" />
-                            <path d="M 60 40 H 140 L 100 110 L 80 80 L 120 140 L 100 170 L 60 110" stroke="#00F0FF" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M 60 40 H 140 L 100 110 L 80 80 L 120 140 L 100 170 L 60 110" stroke="#00F0FF" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                     </div>
-                    <span class="text-2xl font-black tracking-wider text-cyan-400 drop-shadow-[0_0_8px_rgba(0,240,255,0.5)]">
+                    <span className="text-xl font-black tracking-widest text-[#00F0FF] drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]">
                         TECHNOVA
                     </span>
                 </Link>
 
-                {/* Navigation Links */}
-                <nav class="hidden lg:flex items-center gap-7 text-xs md:text-sm font-semibold text-slate-700">
-                    <a href="#home" class="hover:text-cyan-500 transition">Home</a>
-                    <a href="#services" class="hover:text-cyan-500 transition">Services</a>
-                    <a href="#courses" class="hover:text-cyan-500 transition">Courses</a>
-                    <a href="#products" class="hover:text-cyan-500 transition">Products</a>
-                    <a href="#tools" class="hover:text-cyan-500 transition">Tools</a>
-                    <a href="#projects" class="hover:text-cyan-500 transition">Projects</a>
-                    <a href="#about" class="hover:text-cyan-500 transition">About</a>
-                    <Link href="/login" class="hover:text-cyan-500 transition">Admin Login</Link>
+                {/* Desktop Navigation Links */}
+                <nav className="hidden lg:flex items-center gap-7 text-xs font-semibold text-slate-700">
+                    {navLinks.map((item) => {
+                        const isActive = active === item.key;
+                        return (
+                            <Link
+                                key={item.key}
+                                href={item.href}
+                                className={`transition ${
+                                    isActive
+                                        ? 'text-[#00F0FF] font-bold drop-shadow-[0_0_8px_rgba(0,240,255,0.4)]'
+                                        : 'hover:text-cyan-600'
+                                }`}
+                            >
+                                {item.label}
+                            </Link>
+                        );
+                    })}
                 </nav>
 
-                {/* Consultation Button */}
-                <div class="flex items-center gap-3">
-                    <a href="#consultation" class="bg-[#0B1727] hover:bg-slate-800 text-white px-5 py-2.5 rounded-full flex items-center gap-2.5 text-xs md:text-sm font-medium transition shadow-xs">
-                        <span>Consultation</span>
-                        <div class="w-6 h-6 rounded-full border border-slate-400 flex items-center justify-center text-slate-300">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                            </svg>
-                        </div>
-                    </a>
+                {/* Right Action Buttons: Masuk & Daftar */}
+                <div className="hidden sm:flex items-center gap-3">
+                    <Link
+                        href="/login"
+                        className="flex items-center gap-2 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-800 px-4 py-2 rounded-xl text-xs font-bold transition shadow-2xs"
+                    >
+                        <svg className="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span>Masuk</span>
+                    </Link>
+
+                    <Link
+                        href="/login"
+                        className="bg-[#00F0FF] hover:bg-cyan-300 text-[#061426] px-4 py-2 rounded-xl text-xs font-bold transition shadow-xs active:scale-95"
+                    >
+                        Daftar
+                    </Link>
                 </div>
 
+                {/* Mobile Hamburger Toggle */}
+                <button
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    className="lg:hidden text-slate-700 p-1"
+                    aria-label="Toggle Menu"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+                    </svg>
+                </button>
             </div>
+
+            {/* Mobile Dropdown */}
+            {mobileMenuOpen && (
+                <div className="lg:hidden border-t border-slate-100 bg-white px-6 py-4 space-y-3 shadow-lg">
+                    {navLinks.map((item) => (
+                        <Link
+                            key={item.key}
+                            href={item.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`block text-sm font-semibold py-1.5 ${
+                                active === item.key ? 'text-cyan-600 font-bold' : 'text-slate-700'
+                            }`}
+                        >
+                            {item.label}
+                        </Link>
+                    ))}
+                    <div className="pt-3 border-t border-slate-100 flex items-center gap-3">
+                        <Link
+                            href="/login"
+                            className="w-1/2 text-center border border-slate-200 py-2 rounded-xl text-xs font-bold"
+                        >
+                            Masuk
+                        </Link>
+                        <Link
+                            href="/login"
+                            className="w-1/2 text-center bg-[#00F0FF] text-[#061426] py-2 rounded-xl text-xs font-bold"
+                        >
+                            Daftar
+                        </Link>
+                    </div>
+                </div>
+            )}
         </header>
     );
 }
