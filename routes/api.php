@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\CalculatorController;
 use App\Http\Controllers\Api\ContactLeadController;
 use App\Http\Controllers\Api\DigitalProductController;
 use App\Http\Controllers\Api\HomeController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ServiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -37,3 +38,12 @@ Route::prefix('tools')->group(function () {
 // Contact WhatsApp Routes
 Route::post('/contact', [ContactLeadController::class, 'store']);
 Route::post('/contact/quick-whatsapp', [ContactLeadController::class, 'quickUrl']);
+
+// Payment & Checkout Routes
+Route::match(['get', 'post'], '/payment/notification', [PaymentController::class, 'notification']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/checkout', [PaymentController::class, 'checkout']);
+    Route::get('/transactions', [PaymentController::class, 'index']);
+    Route::get('/transactions/{order_id}', [PaymentController::class, 'show']);
+});

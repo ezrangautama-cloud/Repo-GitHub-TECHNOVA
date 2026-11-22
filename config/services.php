@@ -36,7 +36,7 @@ return [
     ],
 
     'whatsapp' => [
-        'target_number' => env('TECHNOVA_WHATSAPP_NUMBER', '6281234567890'), //Isi no hp di sini
+        'target_number' => env('TECHNOVA_WHATSAPP_NUMBER', '6281234567890'), // Isi no hp di sini
     ],
 
 ];
