@@ -4,13 +4,20 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Produk;
+use Illuminate\Http\JsonResponse;
 
 class ServiceController extends Controller
 {
-    public function index()
+    /**
+     * Daftar layanan teknik (tidak termasuk Kursus dan Produk Digital).
+     */
+    public function index(): JsonResponse
     {
-        // Return all products
-        $services = Produk::with('kategori')->get();
+        $services = Produk::with('kategori')
+            ->whereHas('kategori', function ($query): void {
+                $query->whereNotIn('nama_kategori', ['Courses', 'Digital Products']);
+            })
+            ->get();
 
         return response()->json([
             'message' => 'Services retrieved successfully',
@@ -18,11 +25,19 @@ class ServiceController extends Controller
         ]);
     }
 
-    public function show($id)
+    /**
+     * Display the specified engineering service.
+     */
+    public function show(int|string $id): JsonResponse
     {
-        $service = Produk::with('kategori')->find($id);
+        $service = Produk::with('kategori')
+            ->where('id', $id)
+            ->whereHas('kategori', function ($query): void {
+                $query->whereNotIn('nama_kategori', ['Courses', 'Digital Products']);
+            })
+            ->first();
 
-        if (! $service) {
+        if ($service === null) {
             return response()->json(['message' => 'Service not found'], 404);
         }
 

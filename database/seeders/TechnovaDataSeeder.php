@@ -81,7 +81,7 @@ class TechnovaDataSeeder extends Seeder
                 'format' => 'Video + PDF',
                 'deskripsi' => 'Dasar-dasar komponen elektronika, analisis rangkaian listrik, dan teknik pengukuran instrumen praktis.',
                 'harga' => 99000,
-                'file_url' => null,
+                'file_url' => 'https://www.youtube.com/watch?v=technova-electronics-fundamentals',
             ],
             [
                 'id_kategori' => $katCourses->id,
@@ -90,7 +90,7 @@ class TechnovaDataSeeder extends Seeder
                 'format' => 'Video + Project',
                 'deskripsi' => 'Pemrograman mikrokontroler ESP32, integrasi sensor digital/analog, protokol MQTT, dan dashboard cloud.',
                 'harga' => 149000,
-                'file_url' => null,
+                'file_url' => 'https://www.youtube.com/watch?v=technova-esp32-iot',
             ],
             [
                 'id_kategori' => $katCourses->id,
@@ -99,7 +99,7 @@ class TechnovaDataSeeder extends Seeder
                 'format' => 'Video + Project',
                 'deskripsi' => 'Arsitektur end-to-end monitoring sistem industri secara real-time dengan database time-series.',
                 'harga' => 199000,
-                'file_url' => null,
+                'file_url' => 'https://www.youtube.com/watch?v=technova-iot-monitoring',
             ],
             [
                 'id_kategori' => $katCourses->id,
@@ -108,7 +108,7 @@ class TechnovaDataSeeder extends Seeder
                 'format' => 'Video + Workbook',
                 'deskripsi' => 'Prinsip kerja sel surya, perhitungan beban listrik, dimensi panel, solar charge controller, dan baterai.',
                 'harga' => 149000,
-                'file_url' => null,
+                'file_url' => 'https://www.youtube.com/watch?v=technova-solar-pv',
             ],
         ];
 
