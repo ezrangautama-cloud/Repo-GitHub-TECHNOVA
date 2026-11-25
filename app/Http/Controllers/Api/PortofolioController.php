@@ -4,13 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Portofolio;
+use App\Support\LevelNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PortofolioController extends Controller
 {
     /**
-     * listing portfolio projects dengan filters opsional.
+     * Display a listing of portfolio projects with optional category, technology, level, and search filters.
      */
     public function index(Request $request): JsonResponse
     {
@@ -22,6 +23,10 @@ class PortofolioController extends Controller
 
         if ($request->filled('teknologi')) {
             $query->where('teknologi', 'like', '%'.(string) $request->input('teknologi').'%');
+        }
+
+        if ($request->filled('level')) {
+            LevelNormalizer::applyFilter($query, (string) $request->input('level'));
         }
 
         if ($request->filled('q')) {
@@ -42,7 +47,7 @@ class PortofolioController extends Controller
     }
 
     /**
-     * menampilkan detail proyek portofolio yang ditentukan.
+     * Display the specified portfolio project details.
      */
     public function show(int|string $id): JsonResponse
     {

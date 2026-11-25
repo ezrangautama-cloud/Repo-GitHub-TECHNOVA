@@ -23,6 +23,7 @@ class Transaksi extends Model
         'snap_redirect_url',
         'payload_midtrans',
         'tanggal_transaksi',
+        'expired_at',
         'paid_at',
     ];
 
@@ -37,6 +38,7 @@ class Transaksi extends Model
             'total_harga' => 'decimal:2',
             'payload_midtrans' => 'array',
             'tanggal_transaksi' => 'datetime',
+            'expired_at' => 'datetime',
             'paid_at' => 'datetime',
         ];
     }

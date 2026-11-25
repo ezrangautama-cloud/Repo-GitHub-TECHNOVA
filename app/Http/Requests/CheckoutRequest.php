@@ -29,6 +29,7 @@ class CheckoutRequest extends FormRequest
             'product_ids.*' => ['integer', 'exists:produks,id'],
             'items' => ['nullable', 'array', 'min:1'],
             'items.*.id_produk' => ['required_with:items', 'integer', 'exists:produks,id'],
+            'metode_pembayaran' => ['nullable', 'string', 'in:qris,bank_transfer'],
         ];
     }
 
@@ -44,6 +45,7 @@ class CheckoutRequest extends FormRequest
             'product_ids.array' => 'Daftar ID produk harus berupa array.',
             'product_ids.*.exists' => 'Salah satu produk yang dipilih tidak ditemukan dalam katalog.',
             'items.*.id_produk.exists' => 'Salah satu produk dalam item tidak valid.',
+            'metode_pembayaran.in' => 'Metode pembayaran harus berupa qris atau bank_transfer.',
         ];
     }
 

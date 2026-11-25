@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StorePortofolioRequest;
 use App\Http\Requests\Admin\UpdatePortofolioRequest;
 use App\Models\Portofolio;
+use App\Support\LevelNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -14,7 +15,7 @@ use Illuminate\Support\Str;
 class PortofolioManagementController extends Controller
 {
     /**
-     * Tampilkan list semua proyek portofolio untuk Admin.
+     * Display a listing of all portfolio projects for Admin.
      */
     public function index(Request $request): JsonResponse
     {
@@ -22,6 +23,10 @@ class PortofolioManagementController extends Controller
 
         if ($request->filled('kategori')) {
             $query->where('kategori', 'like', '%'.(string) $request->input('kategori').'%');
+        }
+
+        if ($request->filled('level')) {
+            LevelNormalizer::applyFilter($query, (string) $request->input('level'));
         }
 
         if ($request->filled('q')) {
@@ -42,7 +47,7 @@ class PortofolioManagementController extends Controller
     }
 
     /**
-     * Simpan proyek portofolio yang baru dibuat. dengan unggahan gambar thumbnail publik opsional.
+     * Store a newly created portfolio project (with optional public thumbnail image upload).
      */
     public function store(StorePortofolioRequest $request): JsonResponse
     {
@@ -64,7 +69,7 @@ class PortofolioManagementController extends Controller
     }
 
     /**
-     * Tampilkan detail portofolio proyek yang ditentukan.
+     * Display the specified portfolio project details.
      */
     public function show(int|string $id): JsonResponse
     {
@@ -83,7 +88,7 @@ class PortofolioManagementController extends Controller
     }
 
     /**
-     * Update portfolio proyek yang ditentukan.
+     * Update the specified portfolio project.
      */
     public function update(UpdatePortofolioRequest $request, int|string $id): JsonResponse
     {
@@ -116,7 +121,7 @@ class PortofolioManagementController extends Controller
     }
 
     /**
-     * menghapus portofolio proyek yang ditentukan.
+     * Remove the specified portfolio project.
      */
     public function destroy(int|string $id): JsonResponse
     {
@@ -137,7 +142,7 @@ class PortofolioManagementController extends Controller
     }
 
     /**
-     * Menghapus gambar portofolio yang diunggah dari disk penyimpanan publik jika ada.
+     * Delete uploaded portfolio image from public storage disk if present.
      */
     private function deletePublicImageIfExists(?string $fileUrl): void
     {

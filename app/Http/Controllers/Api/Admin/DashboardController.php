@@ -13,7 +13,7 @@ use Illuminate\Http\JsonResponse;
 class DashboardController extends Controller
 {
     /**
-     * mendapatkan rangkuman metrik dan aktivitas terbaru untuk Dashboard Admin.
+     * Get summary metrics and recent activity for the Admin Dashboard.
      */
     public function index(): JsonResponse
     {
@@ -37,8 +37,12 @@ class DashboardController extends Controller
             $q->where('nama_kategori', 'Digital Products');
         })->count();
 
+        $totalProjectProducts = Produk::whereHas('kategori', function ($q): void {
+            $q->where('nama_kategori', 'Projects');
+        })->count();
+
         $totalServices = Produk::whereHas('kategori', function ($q): void {
-            $q->whereNotIn('nama_kategori', ['Courses', 'Digital Products']);
+            $q->whereNotIn('nama_kategori', ['Courses', 'Digital Products', 'Projects']);
         })->count();
 
         $totalPortofolios = Portofolio::count();
@@ -71,6 +75,7 @@ class DashboardController extends Controller
                 'catalog' => [
                     'total_courses' => $totalCourses,
                     'total_digital_products' => $totalDigitalProducts,
+                    'total_project_products' => $totalProjectProducts,
                     'total_services' => $totalServices,
                     'total_portofolios' => $totalPortofolios,
                 ],

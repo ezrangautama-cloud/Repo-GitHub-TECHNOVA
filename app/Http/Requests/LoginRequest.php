@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class LoginRequest extends FormRequest
 {
     /**
-     * menentukan apakah pengguna diizinkan untuk membuat permintaan ini.
+     * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
@@ -16,7 +16,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * menyiapkan data untuk validasi.
+     * Prepare the data for validation.
      */
     protected function prepareForValidation(): void
     {
@@ -32,7 +32,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Get aturan validation yang berlaku untuk permintaan ini.
+     * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -43,11 +43,12 @@ class LoginRequest extends FormRequest
             'username' => ['required_without:email', 'nullable', 'string', 'max:150'],
             'login_identifier' => ['nullable', 'string', 'max:150'],
             'password' => ['required', 'string'],
+            'login_as' => ['nullable', 'string', 'in:customer,peserta,admin'],
         ];
     }
 
     /**
-     * pesan validasi kustom.
+     * Custom validation messages in Indonesian.
      *
      * @return array<string, string>
      */
@@ -57,11 +58,12 @@ class LoginRequest extends FormRequest
             'email.required_without' => 'Email atau username wajib diisi.',
             'username.required_without' => 'Email atau username wajib diisi.',
             'password.required' => 'Password wajib diisi.',
+            'login_as.in' => 'Tipe login harus berupa customer, peserta, atau admin.',
         ];
     }
 
     /**
-     * mendapatkan identifier login yang dinormalisasi (email atau username).
+     * Get the normalized login identifier (email or username).
      */
     public function getLoginIdentifier(): string
     {

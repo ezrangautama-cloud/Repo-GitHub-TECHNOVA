@@ -9,13 +9,16 @@ use Illuminate\Http\JsonResponse;
 
 class HomeController extends Controller
 {
+    /**
+     * Display dynamic featured data for the Homepage.
+     */
     public function index(): JsonResponse
     {
         $portofolios = Portofolio::latest()->take(3)->get();
 
         $services = Produk::with('kategori')
             ->whereHas('kategori', function ($query): void {
-                $query->whereNotIn('nama_kategori', ['Courses', 'Digital Products']);
+                $query->whereNotIn('nama_kategori', ['Courses', 'Digital Products', 'Projects']);
             })
             ->latest()
             ->take(4)
@@ -36,6 +39,7 @@ class HomeController extends Controller
                     'format' => $course->format,
                     'deskripsi' => $course->deskripsi,
                     'harga' => (float) $course->harga,
+                    'thumbnail_url' => $course->thumbnail_url,
                     'kategori' => $course->kategori?->nama_kategori,
                 ];
             });

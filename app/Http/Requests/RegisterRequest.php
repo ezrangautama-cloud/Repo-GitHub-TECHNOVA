@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class RegisterRequest extends FormRequest
 {
     /**
-     * menentukan apakah pengguna diizinkan untuk membuat permintaan ini.
+     * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
@@ -16,22 +16,28 @@ class RegisterRequest extends FormRequest
     }
 
     /**
-     * mendapatkan aturan validasi yang berlaku untuk permintaan ini.
+     * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
+        $passwordRules = ['required', 'string', 'min:8'];
+
+        if ($this->has('password_confirmation')) {
+            $passwordRules[] = 'confirmed';
+        }
+
         return [
             'name' => ['required', 'string', 'min:2', 'max:100'],
             'email' => ['required', 'string', 'email', 'max:150', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => $passwordRules,
             'no_whatsapp' => ['nullable', 'string', 'min:8', 'max:20'],
         ];
     }
 
     /**
-     * pesan validasi kustom.
+     * Custom validation messages in Indonesian.
      *
      * @return array<string, string>
      */

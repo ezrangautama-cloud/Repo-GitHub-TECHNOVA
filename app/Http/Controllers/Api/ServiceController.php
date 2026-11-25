@@ -9,13 +9,13 @@ use Illuminate\Http\JsonResponse;
 class ServiceController extends Controller
 {
     /**
-     * Daftar layanan teknik (tidak termasuk Kursus dan Produk Digital).
+     * Display a listing of engineering services (excluding Courses, Digital Products, and Projects).
      */
     public function index(): JsonResponse
     {
         $services = Produk::with('kategori')
             ->whereHas('kategori', function ($query): void {
-                $query->whereNotIn('nama_kategori', ['Courses', 'Digital Products']);
+                $query->whereNotIn('nama_kategori', ['Courses', 'Digital Products', 'Projects']);
             })
             ->get();
 
@@ -33,7 +33,7 @@ class ServiceController extends Controller
         $service = Produk::with('kategori')
             ->where('id', $id)
             ->whereHas('kategori', function ($query): void {
-                $query->whereNotIn('nama_kategori', ['Courses', 'Digital Products']);
+                $query->whereNotIn('nama_kategori', ['Courses', 'Digital Products', 'Projects']);
             })
             ->first();
 

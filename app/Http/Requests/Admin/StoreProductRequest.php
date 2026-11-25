@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class StoreProductRequest extends FormRequest
 {
     /**
-     * menentukan apakah pengguna diizinkan untuk membuat permintaan ini.
+     * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
@@ -16,7 +16,7 @@ class StoreProductRequest extends FormRequest
     }
 
     /**
-     * mendapatkan aturan validasi yang berlaku untuk permintaan ini.
+     * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -28,14 +28,20 @@ class StoreProductRequest extends FormRequest
             'level' => ['nullable', 'string', 'max:100'],
             'format' => ['nullable', 'string', 'max:100'],
             'deskripsi' => ['nullable', 'string'],
+            'manfaat' => ['nullable', 'array'],
+            'manfaat.*' => ['string', 'max:255'],
+            'yang_didapatkan' => ['nullable', 'array'],
+            'yang_didapatkan.*' => ['string', 'max:255'],
+            'persyaratan' => ['nullable', 'string'],
             'harga' => ['required', 'numeric', 'min:0'],
             'file_url' => ['nullable', 'string', 'max:500'],
+            'thumbnail_url' => ['nullable', 'string', 'max:500'],
             'file' => ['nullable', 'file', 'mimes:pdf,zip,rar,slx,doc,docx,csv,txt', 'max:51200'],
         ];
     }
 
     /**
-     * pesan validasi kustom.
+     * Custom validation messages in Indonesian.
      *
      * @return array<string, string>
      */

@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class StorePortofolioRequest extends FormRequest
 {
     /**
-     * menentukan apakah pengguna diizinkan untuk membuat permintaan ini.
+     * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
@@ -16,7 +16,7 @@ class StorePortofolioRequest extends FormRequest
     }
 
     /**
-     * mendapatkan aturan validasi yang berlaku untuk permintaan ini.
+     * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -25,6 +25,8 @@ class StorePortofolioRequest extends FormRequest
         return [
             'judul_proyek' => ['required', 'string', 'max:150'],
             'kategori' => ['nullable', 'string', 'max:100'],
+            'level' => ['nullable', 'string', 'max:100'],
+            'harga' => ['nullable', 'numeric', 'min:0'],
             'deskripsi' => ['required', 'string'],
             'teknologi' => ['nullable', 'string', 'max:255'],
             'file_url' => ['nullable', 'string', 'max:500'],
@@ -33,7 +35,7 @@ class StorePortofolioRequest extends FormRequest
     }
 
     /**
-     * pesan validasi kustom.
+     * Custom validation messages in Indonesian.
      *
      * @return array<string, string>
      */
@@ -42,6 +44,7 @@ class StorePortofolioRequest extends FormRequest
         return [
             'judul_proyek.required' => 'Judul proyek wajib diisi.',
             'deskripsi.required' => 'Deskripsi proyek wajib diisi.',
+            'harga.numeric' => 'Harga proyek harus berupa angka.',
             'image.image' => 'File harus berupa gambar.',
             'image.mimes' => 'Format gambar harus JPG, JPEG, PNG, atau WEBP.',
             'image.max' => 'Ukuran gambar maksimal 10 MB.',

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\Produk;
+use App\Models\ProdukMateri;
+use App\Support\LevelNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -14,11 +16,11 @@ use Illuminate\Support\Str;
 class ProductManagementController extends Controller
 {
     /**
-     * Menampilkan daftar semua produk/kursus/layanan untuk Admin.
+     * Display a listing of all products/courses/projects/services for Admin.
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Produk::with('kategori');
+        $query = Produk::with('kategori')->withCount('materis');
 
         if ($request->filled('id_kategori')) {
             $query->where('id_kategori', $request->integer('id_kategori'));
@@ -29,6 +31,10 @@ class ProductManagementController extends Controller
             $query->whereHas('kategori', function ($q) use ($kategoriName): void {
                 $q->where('nama_kategori', 'like', "%{$kategoriName}%");
             });
+        }
+
+        if ($request->filled('level')) {
+            LevelNormalizer::applyFilter($query, (string) $request->input('level'));
         }
 
         if ($request->filled('q')) {
@@ -48,7 +54,7 @@ class ProductManagementController extends Controller
     }
 
     /**
-     * Menyimpan produk/kursus/layanan yang baru dibuat (dengan unggahan file pribadi opsional).
+     * Store a newly created product/course/project/service (with optional private file upload).
      */
     public function store(StoreProductRequest $request): JsonResponse
     {
@@ -62,7 +68,7 @@ class ProductManagementController extends Controller
         }
 
         $product = Produk::create($data);
-        $product->load('kategori');
+        $product->load(['kategori', 'materis']);
 
         return response()->json([
             'message' => 'Produk berhasil ditambahkan.',
@@ -71,11 +77,11 @@ class ProductManagementController extends Controller
     }
 
     /**
-     * Menampilkan detail produk yang ditentukan untuk Admin.
+     * Display the specified product details for Admin.
      */
     public function show(int|string $id): JsonResponse
     {
-        $product = Produk::with('kategori')->find($id);
+        $product = Produk::with(['kategori', 'materis'])->find($id);
 
         if ($product === null) {
             return response()->json([
@@ -90,7 +96,7 @@ class ProductManagementController extends Controller
     }
 
     /**
-     * Mengupdate produk/kursus/layanan yang ditentukan.
+     * Update the specified product/course/project/service.
      */
     public function update(UpdateProductRequest $request, int|string $id): JsonResponse
     {
@@ -115,7 +121,7 @@ class ProductManagementController extends Controller
         }
 
         $product->update($data);
-        $product->load('kategori');
+        $product->load(['kategori', 'materis']);
 
         return response()->json([
             'message' => 'Produk berhasil diperbarui.',
@@ -124,7 +130,7 @@ class ProductManagementController extends Controller
     }
 
     /**
-     * Menghapus produk yang ditentukan dari database dan membersihkan file lokal jika ada.
+     * Remove the specified product from database and clean up local file if present.
      */
     public function destroy(int|string $id): JsonResponse
     {
@@ -145,7 +151,107 @@ class ProductManagementController extends Controller
     }
 
     /**
-     * Menghapus file pribadi dari disk lokal jika ada dan bukan URL eksternal.
+     * Add a lesson/file curriculum item to a product/course/project.
+     */
+    public function storeMateri(Request $request, int|string $productId): JsonResponse
+    {
+        $product = Produk::find($productId);
+
+        if ($product === null) {
+            return response()->json([
+                'message' => 'Produk tidak ditemukan.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'judul_modul' => ['nullable', 'string', 'max:150'],
+            'judul_materi' => ['required', 'string', 'max:150'],
+            'deskripsi' => ['nullable', 'string'],
+            'tipe' => ['nullable', 'string', 'in:video,pdf,code,document'],
+            'konten_url' => ['nullable', 'string', 'max:500'],
+            'durasi' => ['nullable', 'string', 'max:50'],
+            'urutan' => ['nullable', 'integer', 'min:1'],
+            'is_preview' => ['nullable', 'boolean'],
+        ]);
+
+        $nextUrutan = ($product->materis()->max('urutan') ?? 0) + 1;
+
+        $materi = ProdukMateri::create([
+            'id_produk' => $product->id,
+            'judul_modul' => $validated['judul_modul'] ?? null,
+            'judul_materi' => $validated['judul_materi'],
+            'deskripsi' => $validated['deskripsi'] ?? null,
+            'tipe' => $validated['tipe'] ?? 'video',
+            'konten_url' => $validated['konten_url'] ?? null,
+            'durasi' => $validated['durasi'] ?? null,
+            'urutan' => $validated['urutan'] ?? $nextUrutan,
+            'is_preview' => (bool) ($validated['is_preview'] ?? false),
+        ]);
+
+        return response()->json([
+            'message' => 'Materi produk berhasil ditambahkan.',
+            'data' => $materi,
+        ], 201);
+    }
+
+    /**
+     * Update a lesson/file curriculum item for a product.
+     */
+    public function updateMateri(Request $request, int|string $productId, int|string $materiId): JsonResponse
+    {
+        $materi = ProdukMateri::where('id', $materiId)
+            ->where('id_produk', $productId)
+            ->first();
+
+        if ($materi === null) {
+            return response()->json([
+                'message' => 'Materi produk tidak ditemukan.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'judul_modul' => ['nullable', 'string', 'max:150'],
+            'judul_materi' => ['sometimes', 'required', 'string', 'max:150'],
+            'deskripsi' => ['nullable', 'string'],
+            'tipe' => ['nullable', 'string', 'in:video,pdf,code,document'],
+            'konten_url' => ['nullable', 'string', 'max:500'],
+            'durasi' => ['nullable', 'string', 'max:50'],
+            'urutan' => ['nullable', 'integer', 'min:1'],
+            'is_preview' => ['nullable', 'boolean'],
+        ]);
+
+        $materi->update($validated);
+
+        return response()->json([
+            'message' => 'Materi produk berhasil diperbarui.',
+            'data' => $materi,
+        ]);
+    }
+
+    /**
+     * Delete a lesson/file curriculum item from a product.
+     */
+    public function destroyMateri(int|string $productId, int|string $materiId): JsonResponse
+    {
+        $materi = ProdukMateri::where('id', $materiId)
+            ->where('id_produk', $productId)
+            ->first();
+
+        if ($materi === null) {
+            return response()->json([
+                'message' => 'Materi produk tidak ditemukan.',
+            ], 404);
+        }
+
+        $materi->delete();
+
+        return response()->json([
+            'message' => 'Materi produk berhasil dihapus.',
+        ]);
+    }
+
+    /**
+     * Delete a private file from local disk if it exists and is not an external URL.
      */
     private function deleteLocalFileIfExists(?string $fileUrl): void
     {

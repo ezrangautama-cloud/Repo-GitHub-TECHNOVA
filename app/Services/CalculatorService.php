@@ -279,6 +279,14 @@ class CalculatorService
             }
         }
 
+        // Praktis battery sizing (pembulatan ke atas kelipatan 50 Ah) dan konfigurasi seri-paralel 12V
+        $bateraiPraktisAh = max(50, (int) (ceil($bateraiAh / 50) * 50));
+        $unitAh = $bateraiPraktisAh >= 200 ? 200 : 100;
+        $jumlahSeri = (int) ($vSys / 12);
+        $jumlahParalel = (int) ceil($bateraiPraktisAh / $unitAh);
+        $totalUnitBaterai = $jumlahSeri * $jumlahParalel;
+        $konfigurasiBateraiLabel = "{$totalUnitBaterai} baterai 12 V {$unitAh} Ah ({$jumlahSeri} seri × {$jumlahParalel} paralel)";
+
         return [
             'energi_harian_wh' => round($energiHarianWh, 2),
             'energi_harian_kwh' => round($energiHarianWh / 1000, 3),
@@ -293,11 +301,21 @@ class CalculatorService
             'jumlah_panel' => $jumlahPanel,
             'estimasi_modul_label' => "{$jumlahPanel}x Panel {$dayaPanelUnit} Wp",
             'kapasitas_baterai_ah' => round($bateraiAh, 1),
+            'kapasitas_baterai_praktis_ah' => $bateraiPraktisAh,
             'kapasitas_baterai_kwh' => round(($bateraiAh * $vSys) / 1000, 2),
+            'konfigurasi_baterai' => [
+                'tegangan_unit_v' => 12,
+                'kapasitas_unit_ah' => $unitAh,
+                'jumlah_seri' => $jumlahSeri,
+                'jumlah_paralel' => $jumlahParalel,
+                'total_unit' => $totalUnitBaterai,
+                'label' => $konfigurasiBateraiLabel,
+            ],
             'total_beban_bersamaan_watt' => round($bebanWatt, 2),
             'surge_factor' => $surgeFactor,
             'rekomendasi_inverter_watt' => $inverterWattRekomendasi,
             'rekomendasi_inverter_label' => "Minimal {$inverterWattRekomendasi} Watt ({$vSys}V)",
+            'rekomendasi_inverter_rentang' => "{$inverterWattRekomendasi} - ".($inverterWattRekomendasi + 500)." W pada {$vSys} V",
         ];
     }
 

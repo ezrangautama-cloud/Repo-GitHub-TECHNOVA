@@ -54,7 +54,7 @@ class MidtransService
      *
      * @throws RuntimeException
      */
-    public function createSnapTransaction(Transaksi $transaksi): array
+    public function createSnapTransaction(Transaksi $transaksi, ?string $preferredMethod = null): array
     {
         $serverKey = $this->getServerKey();
 
@@ -91,6 +91,12 @@ class MidtransService
             'item_details' => $itemDetails,
             'customer_details' => $customerDetails,
         ];
+
+        if ($preferredMethod === 'qris') {
+            $payload['enabled_payments'] = ['other_qris', 'gopay', 'shopeepay'];
+        } elseif ($preferredMethod === 'bank_transfer') {
+            $payload['enabled_payments'] = ['bca_va', 'bni_va', 'bri_va', 'permata_va', 'echannel', 'cimb_va'];
+        }
 
         $response = Http::withHeaders([
             'Authorization' => 'Basic '.base64_encode($serverKey.':'),
@@ -135,7 +141,6 @@ class MidtransService
             $this->getServerKey(),
             (string) config('midtrans.production_server_key', ''),
             (string) env('MIDTRANS_PRODUCTION_SERVER_KEY', ''),
-            'Mid-server-QMdhe_JYlvHKXf7fht_UdfCA',
         ]));
 
         foreach ($keys as $key) {
@@ -255,5 +260,53 @@ class MidtransService
             ->get($url);
 
         return $response->json() ?? [];
+    }
+
+    /**
+     * Sinkronisasi status transaksi langsung dari Midtrans Core API dan buka akses bila sukses.
+     */
+    public function syncTransactionStatus(Transaksi $transaksi): Transaksi
+    {
+        $statusPayload = $this->checkTransactionStatus($transaksi->order_id);
+
+        if (isset($statusPayload['transaction_status'])) {
+            $transactionStatus = (string) $statusPayload['transaction_status'];
+            $fraudStatus = isset($statusPayload['fraud_status']) ? (string) $statusPayload['fraud_status'] : null;
+            $paymentType = isset($statusPayload['payment_type']) ? (string) $statusPayload['payment_type'] : null;
+
+            $newStatus = $this->mapTransactionStatus($transactionStatus, $fraudStatus);
+
+            DB::transaction(function () use ($transaksi, $newStatus, $paymentType, $statusPayload): void {
+                $updateData = [
+                    'status_pembayaran' => $newStatus,
+                    'payload_midtrans' => $statusPayload,
+                ];
+
+                if ($paymentType !== null) {
+                    $updateData['metode_pembayaran'] = $paymentType;
+                }
+
+                if ($newStatus === 'success') {
+                    $updateData['paid_at'] = $transaksi->paid_at ?? now();
+
+                    $transaksi->loadMissing('detailTransaksis');
+                    foreach ($transaksi->detailTransaksis as $detail) {
+                        AksesProduk::updateOrCreate(
+                            [
+                                'id_user' => $transaksi->id_user,
+                                'id_produk' => $detail->id_produk,
+                            ],
+                            [
+                                'status_akses' => 'Unlocked',
+                            ]
+                        );
+                    }
+                }
+
+                $transaksi->update($updateData);
+            });
+        }
+
+        return $transaksi->fresh(['user:id,name,email,no_whatsapp', 'detailTransaksis.produk.kategori', 'detailTransaksis.produk.materis']);
     }
 }

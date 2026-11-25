@@ -14,7 +14,7 @@ class LeadManagementController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = PesanLead::with('user:id,name,email');
+        $query = PesanLead::with(['user:id,name,email', 'responder:id,name,email']);
 
         if ($request->filled('status_lead')) {
             $query->where('status_lead', (string) $request->input('status_lead'));
@@ -27,7 +27,9 @@ class LeadManagementController extends Controller
         if ($request->filled('q')) {
             $searchTerm = (string) $request->input('q');
             $query->where(function ($q) use ($searchTerm): void {
-                $q->where('nama_pengirim', 'like', "%{$searchTerm}%")
+                $q->where('kode_permintaan', 'like', "%{$searchTerm}%")
+                    ->orWhere('nama_pengirim', 'like', "%{$searchTerm}%")
+                    ->orWhere('email', 'like', "%{$searchTerm}%")
                     ->orWhere('no_whatsapp', 'like', "%{$searchTerm}%")
                     ->orWhere('pesan', 'like', "%{$searchTerm}%");
             });
@@ -46,7 +48,7 @@ class LeadManagementController extends Controller
      */
     public function show(int|string $id): JsonResponse
     {
-        $lead = PesanLead::with('user:id,name,email,no_whatsapp')->find($id);
+        $lead = PesanLead::with(['user:id,name,email,no_whatsapp', 'responder:id,name,email'])->find($id);
 
         if ($lead === null) {
             return response()->json([
@@ -91,7 +93,46 @@ class LeadManagementController extends Controller
     }
 
     /**
-     * Menghapus consultaion lead yang ditentukan.
+     * Simpan balasan admin terhadap pesan lead/permintaan layanan dari user.
+     */
+    public function respond(Request $request, int|string $id): JsonResponse
+    {
+        $lead = PesanLead::find($id);
+
+        if ($lead === null) {
+            return response()->json([
+                'message' => 'Pesan lead tidak ditemukan.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'admin_response' => ['required', 'string', 'min:2', 'max:5000'],
+            'status_lead' => ['nullable', 'string', 'in:Follow Up,Closed'],
+        ], [
+            'admin_response.required' => 'Isi balasan admin wajib diisi.',
+            'admin_response.min' => 'Isi balasan minimal 2 karakter.',
+            'status_lead.in' => 'Status lead harus berupa Follow Up atau Closed.',
+        ]);
+
+        $admin = $request->user('sanctum') ?? $request->user();
+
+        $lead->update([
+            'admin_response' => $validated['admin_response'],
+            'responded_by' => $admin?->id,
+            'responded_at' => now(),
+            'status_lead' => $validated['status_lead'] ?? 'Closed',
+        ]);
+
+        $lead->load(['user:id,name,email,no_whatsapp', 'responder:id,name,email']);
+
+        return response()->json([
+            'message' => 'Balasan admin berhasil disimpan.',
+            'data' => $lead,
+        ]);
+    }
+
+    /**
+     * Menghapus consultation lead yang ditentukan.
      */
     public function destroy(int|string $id): JsonResponse
     {

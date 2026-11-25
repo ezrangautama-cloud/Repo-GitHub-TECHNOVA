@@ -8,11 +8,12 @@ use App\Models\Transaksi;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TransactionManagementController extends Controller
 {
     /**
-     * menampilkan daftar transaksi yang dipaginasikan untuk pemantauan Admin.
+     * Display a paginated listing of all transactions for Admin monitoring.
      */
     public function index(Request $request): JsonResponse
     {
@@ -45,7 +46,67 @@ class TransactionManagementController extends Controller
     }
 
     /**
-     * menampilkan detail lengkap dari transaksi termasuk payload webhook mentah.
+     * Export filtered transactions as CSV file for Admin ("Ekspor pesanan").
+     */
+    public function export(Request $request): StreamedResponse
+    {
+        $query = Transaksi::with([
+            'user:id,name,email',
+            'detailTransaksis.produk:id,nama_produk',
+        ]);
+
+        if ($request->filled('status_pembayaran')) {
+            $query->where('status_pembayaran', (string) $request->input('status_pembayaran'));
+        }
+
+        $transactions = $query->latest('tanggal_transaksi')->get();
+        $filename = 'pesanan-technova-'.now()->format('Ymd-His').'.csv';
+
+        return response()->streamDownload(function () use ($transactions): void {
+            $handle = fopen('php://output', 'w');
+
+            if ($handle === false) {
+                return;
+            }
+
+            fputcsv($handle, [
+                'Order ID',
+                'Tanggal',
+                'Pelanggan',
+                'Email',
+                'Item',
+                'Total',
+                'Metode',
+                'Status',
+                'Waktu Bayar',
+            ]);
+
+            foreach ($transactions as $trx) {
+                $itemsLabel = $trx->detailTransaksis
+                    ->map(fn ($dt): string => $dt->produk?->nama_produk ?? ('Produk #'.$dt->id_produk))
+                    ->implode('; ');
+
+                fputcsv($handle, [
+                    $trx->order_id,
+                    $trx->tanggal_transaksi?->toDateTimeString() ?? '',
+                    $trx->user?->name ?? '',
+                    $trx->user?->email ?? '',
+                    $itemsLabel,
+                    (string) $trx->total_harga,
+                    $trx->metode_pembayaran ?? '-',
+                    $trx->status_pembayaran,
+                    $trx->paid_at?->toDateTimeString() ?? '-',
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    /**
+     * Display full details of a transaction including raw webhook payload.
      */
     public function show(string $orderId): JsonResponse
     {
@@ -69,7 +130,7 @@ class TransactionManagementController extends Controller
     }
 
     /**
-     * secara manual memverifikasi transaksi sebagai settled dan membuka semua item yang dibeli untuk pengguna.
+     * Manually verify a transaction as settled and unlock all purchased items for the user.
      */
     public function verifyAndUnlock(string $orderId): JsonResponse
     {
@@ -111,7 +172,7 @@ class TransactionManagementController extends Controller
     }
 
     /**
-     * Secara manual memberikan atau mencabut akses produk/kursus untuk pengguna tertentu.
+     * Manually grant or revoke product/course access for a specific user.
      */
     public function grantManualAccess(Request $request): JsonResponse
     {
