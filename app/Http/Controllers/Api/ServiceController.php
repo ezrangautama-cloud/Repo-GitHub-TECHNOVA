@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Produk;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-
-use App\Models\Produk;
 
 class ServiceController extends Controller
 {
@@ -22,7 +21,7 @@ class ServiceController extends Controller
             $cat = (string) $request->input('category');
             if (strtolower($cat) === 'services') {
                 $query->whereHas('kategori', function ($q) {
-                    $q->whereNotIn('nama_kategori', ['Digital Products', 'Courses']);
+                    $q->whereNotIn('nama_kategori', ['Digital Products', 'Courses', 'Projects']);
                 });
             } else {
                 $query->whereHas('kategori', function ($q) use ($cat) {
@@ -49,7 +48,7 @@ class ServiceController extends Controller
 
         return response()->json([
             'message' => 'Services retrieved successfully',
-            'data' => $services
+            'data' => $services,
         ]);
     }
 
@@ -86,17 +85,22 @@ class ServiceController extends Controller
     /**
      * Tampilkan detail layanan atau kursus.
      */
-    public function show($id): JsonResponse
+    public function show(int|string $id): JsonResponse
     {
-        $service = Produk::with('kategori')->find($id);
+        $service = Produk::with('kategori')
+            ->where('id', $id)
+            ->whereHas('kategori', function ($query): void {
+                $query->whereNotIn('nama_kategori', ['Courses', 'Digital Products', 'Projects']);
+            })
+            ->first();
 
-        if (!$service) {
+        if ($service === null) {
             return response()->json(['message' => 'Service not found'], 404);
         }
 
         return response()->json([
             'message' => 'Service detail retrieved successfully',
-            'data' => $service
+            'data' => $service,
         ]);
     }
 

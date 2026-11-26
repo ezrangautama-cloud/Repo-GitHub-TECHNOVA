@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Produk;
+use App\Models\ProdukMateri;
+use App\Support\LevelNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -14,34 +16,28 @@ class DigitalProductController extends Controller
 {
     /**
      * Tampilkan daftar produk digital.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
         $user = $request->user('sanctum') ?? $request->user();
 
-        $query = Produk::query()
-            ->whereHas('kategori', function ($q) {
+        $query = Produk::withCount('materis')
+            ->whereHas('kategori', function ($q): void {
                 $q->where('nama_kategori', 'Digital Products');
             });
 
-        // Search query
         if ($request->filled('q')) {
             $searchTerm = (string) $request->input('q');
-            $query->where(function ($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm): void {
                 $q->where('nama_produk', 'like', "%{$searchTerm}%")
                     ->orWhere('deskripsi', 'like', "%{$searchTerm}%");
             });
         }
 
-        // Filter by level
         if ($request->filled('level')) {
-            $query->where('level', 'like', '%' . $request->input('level') . '%');
+            LevelNormalizer::applyFilter($query, (string) $request->input('level'));
         }
 
-        // Sorting
         $sort = $request->input('sort', 'latest');
         match ($sort) {
             'price_low' => $query->orderBy('harga', 'asc'),
@@ -52,7 +48,6 @@ class DigitalProductController extends Controller
 
         $products = $query->get();
 
-        // Get unlocked product IDs jika user authenticated
         $unlockedProductIds = [];
         if ($user !== null) {
             if ($user->isAdmin()) {
@@ -65,8 +60,9 @@ class DigitalProductController extends Controller
             }
         }
 
-        $formatted = $products->map(function (Produk $product) use ($unlockedProductIds) {
+        $formatted = $products->map(function (Produk $product) use ($unlockedProductIds): array {
             $isUnlocked = in_array($product->id, $unlockedProductIds, true);
+            $harga = (float) $product->harga;
 
             return [
                 'id' => $product->id,
@@ -74,7 +70,10 @@ class DigitalProductController extends Controller
                 'level' => $product->level,
                 'format' => $product->format,
                 'deskripsi' => $product->deskripsi,
-                'harga' => (float) $product->harga,
+                'harga' => $harga,
+                'is_free' => $harga <= 0,
+                'thumbnail_url' => $product->thumbnail_url,
+                'materis_count' => $product->materis_count ?? 0,
                 'is_unlocked' => $isUnlocked,
                 'download_url' => $isUnlocked ? url("/api/digital-products/{$product->id}/download") : null,
             ];
@@ -87,18 +86,15 @@ class DigitalProductController extends Controller
     }
 
     /**
-     * tampilkan detail digital product.
-     *
-     * @param Request $request
-     * @param int|string $id
-     * @return JsonResponse
+     * Tampilkan detail digital product.
      */
     public function show(Request $request, int|string $id): JsonResponse
     {
         $user = $request->user('sanctum') ?? $request->user();
 
-        $product = Produk::where('id', $id)
-            ->whereHas('kategori', function ($q) {
+        $product = Produk::with('materis')
+            ->where('id', $id)
+            ->whereHas('kategori', function ($q): void {
                 $q->where('nama_kategori', 'Digital Products');
             })
             ->first();
@@ -129,6 +125,24 @@ class DigitalProductController extends Controller
         }
 
         $fileExists = ! empty($product->file_url) && Storage::disk('local')->exists($product->file_url);
+        $harga = (float) $product->harga;
+
+        $materis = $product->materis->map(function (ProdukMateri $materi) use ($isUnlocked): array {
+            $canAccess = $isUnlocked || $materi->is_preview;
+
+            return [
+                'id' => $materi->id,
+                'judul_modul' => $materi->judul_modul,
+                'judul_materi' => $materi->judul_materi,
+                'deskripsi' => $materi->deskripsi,
+                'tipe' => $materi->tipe,
+                'durasi' => $materi->durasi,
+                'urutan' => $materi->urutan,
+                'is_preview' => $materi->is_preview,
+                'is_locked' => ! $canAccess,
+                'konten_url' => $canAccess ? $materi->konten_url : null,
+            ];
+        });
 
         return response()->json([
             'message' => 'Digital product detail retrieved successfully.',
@@ -138,21 +152,24 @@ class DigitalProductController extends Controller
                 'level' => $product->level,
                 'format' => $product->format,
                 'deskripsi' => $product->deskripsi,
-                'harga' => (float) $product->harga,
+                'manfaat' => $product->manfaat,
+                'yang_didapatkan' => $product->yang_didapatkan,
+                'persyaratan' => $product->persyaratan,
+                'harga' => $harga,
+                'is_free' => $harga <= 0,
+                'thumbnail_url' => $product->thumbnail_url,
                 'access_status' => $accessStatus,
                 'is_unlocked' => $isUnlocked,
                 'is_file_ready' => $fileExists,
                 'download_url' => $isUnlocked ? url("/api/digital-products/{$product->id}/download") : null,
+                'materis_count' => $materis->count(),
+                'materis' => $materis,
             ],
         ]);
     }
 
     /**
      * Unduh file produk digital secara aman.
-     *
-     * @param Request $request
-     * @param int|string $id
-     * @return BinaryFileResponse|JsonResponse
      */
     public function download(Request $request, int|string $id): BinaryFileResponse|JsonResponse
     {
@@ -165,7 +182,7 @@ class DigitalProductController extends Controller
         }
 
         $product = Produk::where('id', $id)
-            ->whereHas('kategori', function ($q) {
+            ->whereHas('kategori', function ($q): void {
                 $q->where('nama_kategori', 'Digital Products');
             })
             ->first();
@@ -189,12 +206,12 @@ class DigitalProductController extends Controller
 
         if (empty($product->file_url) || ! Storage::disk('local')->exists($product->file_url)) {
             return response()->json([
-                'message' => 'File produk belum tersedia di server.',
+                'message' => 'Berkas fisik produk belum tersedia di server.',
             ], 404);
         }
 
         $extension = pathinfo($product->file_url, PATHINFO_EXTENSION);
-        $safeFilename = Str::slug($product->nama_produk) . ($extension ? '.' . $extension : '');
+        $safeFilename = Str::slug($product->nama_produk).($extension ? '.'.$extension : '');
         $filePath = Storage::disk('local')->path($product->file_url);
 
         return response()->download($filePath, $safeFilename);

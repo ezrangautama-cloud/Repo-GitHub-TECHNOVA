@@ -15,8 +15,11 @@ class DigitalProductTest extends TestCase
     use RefreshDatabase;
 
     protected KategoriProduk $category;
+
     protected Produk $product;
+
     protected User $customer;
+
     protected User $admin;
 
     protected function setUp(): void

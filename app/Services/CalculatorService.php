@@ -151,7 +151,7 @@ class CalculatorService
     /**
      * Calculate electrical load and daily energy consumption.
      *
-     * @param array<int, array<string, mixed>> $appliances
+     * @param  array<int, array<string, mixed>>  $appliances
      * @return array<string, mixed>
      */
     public function calculateElectrical(array $appliances): array
@@ -161,7 +161,7 @@ class CalculatorService
         $items = [];
 
         foreach ($appliances as $index => $appliance) {
-            $nama = (string) ($appliance['nama_alat'] ?? 'Alat #' . ($index + 1));
+            $nama = (string) ($appliance['nama_alat'] ?? 'Alat #'.($index + 1));
             $daya = (float) ($appliance['daya_watt'] ?? 0);
             $jumlah = max(1, (int) ($appliance['jumlah'] ?? 1));
             $durasi = max(0.1, min(24.0, (float) ($appliance['durasi_jam'] ?? 1)));
@@ -236,12 +236,6 @@ class CalculatorService
     /**
      * Calculate Solar PV requirements.
      *
-     * @param float $energiHarianWh
-     * @param float $psh
-     * @param int $vSys
-     * @param string $jenisBaterai
-     * @param int $dayaPanelUnit
-     * @param float|null $totalBebanWatt
      * @return array<string, mixed>
      */
     public function calculateSolar(
@@ -285,6 +279,14 @@ class CalculatorService
             }
         }
 
+        // Praktis battery sizing (pembulatan ke atas kelipatan 50 Ah) dan konfigurasi seri-paralel 12V
+        $bateraiPraktisAh = max(50, (int) (ceil($bateraiAh / 50) * 50));
+        $unitAh = $bateraiPraktisAh >= 200 ? 200 : 100;
+        $jumlahSeri = (int) ($vSys / 12);
+        $jumlahParalel = (int) ceil($bateraiPraktisAh / $unitAh);
+        $totalUnitBaterai = $jumlahSeri * $jumlahParalel;
+        $konfigurasiBateraiLabel = "{$totalUnitBaterai} baterai 12 V {$unitAh} Ah ({$jumlahSeri} seri × {$jumlahParalel} paralel)";
+
         return [
             'energi_harian_wh' => round($energiHarianWh, 2),
             'energi_harian_kwh' => round($energiHarianWh / 1000, 3),
@@ -299,11 +301,185 @@ class CalculatorService
             'jumlah_panel' => $jumlahPanel,
             'estimasi_modul_label' => "{$jumlahPanel}x Panel {$dayaPanelUnit} Wp",
             'kapasitas_baterai_ah' => round($bateraiAh, 1),
+            'kapasitas_baterai_praktis_ah' => $bateraiPraktisAh,
             'kapasitas_baterai_kwh' => round(($bateraiAh * $vSys) / 1000, 2),
+            'konfigurasi_baterai' => [
+                'tegangan_unit_v' => 12,
+                'kapasitas_unit_ah' => $unitAh,
+                'jumlah_seri' => $jumlahSeri,
+                'jumlah_paralel' => $jumlahParalel,
+                'total_unit' => $totalUnitBaterai,
+                'label' => $konfigurasiBateraiLabel,
+            ],
             'total_beban_bersamaan_watt' => round($bebanWatt, 2),
             'surge_factor' => $surgeFactor,
             'rekomendasi_inverter_watt' => $inverterWattRekomendasi,
             'rekomendasi_inverter_label' => "Minimal {$inverterWattRekomendasi} Watt ({$vSys}V)",
+            'rekomendasi_inverter_rentang' => "{$inverterWattRekomendasi} - ".($inverterWattRekomendasi + 500)." W pada {$vSys} V",
+        ];
+    }
+
+    /**
+     * Get LED Resistor configuration presets (common supply voltages and LED forward voltages).
+     *
+     * @return array<string, mixed>
+     */
+    public function getLedResistorPresets(): array
+    {
+        return [
+            'opsi_tegangan_sumber' => [
+                ['label' => '3.3V (ESP32 / ESP8266 / STM32)', 'value' => 3.3],
+                ['label' => '5V (Arduino Uno / USB)', 'value' => 5],
+                ['label' => '9V (Baterai 9V)', 'value' => 9],
+                ['label' => '12V (Adaptor / Aki)', 'value' => 12],
+                ['label' => '24V (Power Supply Industri)', 'value' => 24],
+            ],
+            'opsi_warna_led' => [
+                ['warna' => 'Merah (Red)', 'vf_default' => 2.0, 'if_default_ma' => 10, 'rentang_vf' => '1.8V - 2.2V'],
+                ['warna' => 'Kuning / Oranye (Yellow/Amber)', 'vf_default' => 2.1, 'if_default_ma' => 10, 'rentang_vf' => '2.0V - 2.2V'],
+                ['warna' => 'Hijau Standar (Green)', 'vf_default' => 2.2, 'if_default_ma' => 10, 'rentang_vf' => '2.0V - 2.4V'],
+                ['warna' => 'Biru (Blue)', 'vf_default' => 3.2, 'if_default_ma' => 20, 'rentang_vf' => '3.0V - 3.4V'],
+                ['warna' => 'Putih (White)', 'vf_default' => 3.2, 'if_default_ma' => 20, 'rentang_vf' => '3.0V - 3.4V'],
+                ['warna' => 'Inframerah (IR)', 'vf_default' => 1.2, 'if_default_ma' => 20, 'rentang_vf' => '1.2V - 1.5V'],
+                ['warna' => 'Ultraviolet (UV)', 'vf_default' => 3.4, 'if_default_ma' => 20, 'rentang_vf' => '3.2V - 3.6V'],
+            ],
+            'deret_resistor_standar' => 'E12 Series',
+        ];
+    }
+
+    /**
+     * Calculate LED limiting resistor value, standard E12 resistor, actual current, and wattage rating.
+     *
+     * @return array<string, mixed>
+     */
+    public function calculateLedResistor(
+        float $supplyVoltage,
+        float $ledForwardVoltage,
+        float $ledCurrentMa
+    ): array {
+        // Formula: R = (Vs - Vf) / (If * 0.001)
+        $voltageDrop = $supplyVoltage - $ledForwardVoltage;
+        $currentAmpere = $ledCurrentMa * 0.001;
+        $resistorExact = $voltageDrop / $currentAmpere;
+
+        // Round up to nearest E12 standard resistor value
+        $recommendedResistor = $this->findNextStandardE12Resistor($resistorExact);
+
+        // Actual current flowing through LED when using standard resistor (mA)
+        $actualCurrentMa = ($voltageDrop / $recommendedResistor) * 1000;
+
+        // Power dissipation on standard resistor (Watt) & safety factor 2x
+        $powerDissipationWatt = ($voltageDrop ** 2) / $recommendedResistor;
+        $safeWattageRequired = $powerDissipationWatt * 2;
+
+        $recommendedWattage = match (true) {
+            $safeWattageRequired <= 0.125 => '1/8 W (atau 1/4 W standar)',
+            $safeWattageRequired <= 0.25 => '1/4 W (0.25 W)',
+            $safeWattageRequired <= 0.50 => '1/2 W (0.5 W)',
+            $safeWattageRequired <= 1.00 => '1 W',
+            $safeWattageRequired <= 2.00 => '2 W',
+            default => '5 W atau lebih',
+        };
+
+        return [
+            'supply_voltage_v' => round($supplyVoltage, 2),
+            'led_forward_voltage_v' => round($ledForwardVoltage, 2),
+            'led_current_ma' => round($ledCurrentMa, 2),
+            'calculated_resistor_ohm' => round($resistorExact, 2),
+            'calculated_resistor_formatted' => $this->formatOhm(round($resistorExact, 2)),
+            'recommended_resistor_ohm' => $recommendedResistor,
+            'recommended_resistor_formatted' => $this->formatOhm($recommendedResistor),
+            'actual_current_ma' => round($actualCurrentMa, 1),
+            'power_dissipation_watt' => round($powerDissipationWatt, 4),
+            'safe_wattage_required_watt' => round($safeWattageRequired, 4),
+            'recommended_wattage_rating' => $recommendedWattage,
+            'color_bands_4_band' => $this->get4BandColorCode($recommendedResistor),
+        ];
+    }
+
+    /**
+     * Find the nearest standard E12 series resistor value >= exactOhm.
+     */
+    private function findNextStandardE12Resistor(float $exactOhm): float
+    {
+        if ($exactOhm <= 1.0) {
+            return 1.0;
+        }
+
+        $e12Base = [1.0, 1.2, 1.5, 1.8, 2.2, 2.7, 3.3, 3.9, 4.7, 5.6, 6.8, 8.2];
+
+        for ($decade = 0; $decade <= 6; $decade++) {
+            $multiplier = 10 ** $decade;
+            foreach ($e12Base as $base) {
+                $candidate = round($base * $multiplier, 2);
+                if ($candidate >= $exactOhm) {
+                    return $candidate;
+                }
+            }
+        }
+
+        return ceil($exactOhm);
+    }
+
+    /**
+     * Format resistance value into human-readable string (Ohm, kOhm, MOhm).
+     */
+    private function formatOhm(float $ohm): string
+    {
+        if ($ohm >= 1000000) {
+            return round($ohm / 1000000, 2).' MΩ';
+        }
+
+        if ($ohm >= 1000) {
+            return round($ohm / 1000, 2).' kΩ';
+        }
+
+        return $ohm.' Ω';
+    }
+
+    /**
+     * Generate 4-band resistor color code array (5% tolerance).
+     *
+     * @return array<int, string>
+     */
+    private function get4BandColorCode(float $ohm): array
+    {
+        $digitColors = ['Black', 'Brown', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Violet', 'Grey', 'White'];
+        $multColors = [
+            -2 => 'Silver',
+            -1 => 'Gold',
+            0 => 'Black',
+            1 => 'Brown',
+            2 => 'Red',
+            3 => 'Orange',
+            4 => 'Yellow',
+            5 => 'Green',
+            6 => 'Blue',
+            7 => 'Violet',
+        ];
+
+        if ($ohm < 10) {
+            $digits = (int) round($ohm * 10);
+            $multiplierExp = -1;
+        } else {
+            $log = (int) floor(log10($ohm));
+            $multiplierExp = $log - 1;
+            $digits = (int) round($ohm / (10 ** $multiplierExp));
+        }
+
+        if ($digits >= 100) {
+            $digits = (int) ($digits / 10);
+            $multiplierExp++;
+        }
+
+        $d1 = (int) floor($digits / 10);
+        $d2 = $digits % 10;
+
+        return [
+            $digitColors[$d1] ?? 'Black',
+            $digitColors[$d2] ?? 'Black',
+            $multColors[$multiplierExp] ?? 'Black',
+            'Gold',
         ];
     }
 }

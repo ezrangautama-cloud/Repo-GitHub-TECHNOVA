@@ -6,6 +6,7 @@ use App\Models\AksesProduk;
 use App\Models\KategoriProduk;
 use App\Models\Portofolio;
 use App\Models\Produk;
+use App\Models\ProdukMateri;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
@@ -24,6 +25,7 @@ class TechnovaDataSeeder extends Seeder
         $katLab = KategoriProduk::firstOrCreate(['nama_kategori' => 'Laboratory Solutions']);
         $katCourses = KategoriProduk::firstOrCreate(['nama_kategori' => 'Courses']);
         $katDigital = KategoriProduk::firstOrCreate(['nama_kategori' => 'Digital Products']);
+        $katProjects = KategoriProduk::firstOrCreate(['nama_kategori' => 'Projects']);
 
         // 2. Services (dibawah categories)
         $services = [
@@ -76,12 +78,32 @@ class TechnovaDataSeeder extends Seeder
         $courses = [
             [
                 'id_kategori' => $katCourses->id,
+                'nama_produk' => 'Pengantar IoT',
+                'level' => 'Pemula',
+                'format' => '4 materi • Belajar mandiri',
+                'deskripsi' => 'Kenali cara perangkat, sensor, dan internet saling terhubung. Mulai dari konsep dasar sebelum melangkah ke pemrograman ESP32.',
+                'manfaat' => [
+                    'Memahami alur sensor, perangkat, jaringan, dan data.',
+                    'Membedakan fungsi perangkat keras dan perangkat lunak IoT.',
+                    'Menyusun gambaran sederhana sistem pemantauan.',
+                ],
+                'yang_didapatkan' => [
+                    '4 materi pengantar',
+                    'Rangkuman konsep IoT',
+                    'Latihan pemetaan sistem',
+                ],
+                'persyaratan' => 'Cukup siapkan komputer atau ponsel dengan koneksi internet.',
+                'harga' => 0,
+                'file_url' => 'https://www.youtube.com/watch?v=technova-pengantar-iot',
+            ],
+            [
+                'id_kategori' => $katCourses->id,
                 'nama_produk' => 'Electronics Fundamentals',
                 'level' => 'BEGINNER',
                 'format' => 'Video + PDF',
                 'deskripsi' => 'Dasar-dasar komponen elektronika, analisis rangkaian listrik, dan teknik pengukuran instrumen praktis.',
                 'harga' => 99000,
-                'file_url' => null,
+                'file_url' => 'https://www.youtube.com/watch?v=technova-electronics-fundamentals',
             ],
             [
                 'id_kategori' => $katCourses->id,
@@ -89,8 +111,19 @@ class TechnovaDataSeeder extends Seeder
                 'level' => 'BEGINNER, INTERMEDIATE',
                 'format' => 'Video + Project',
                 'deskripsi' => 'Pemrograman mikrokontroler ESP32, integrasi sensor digital/analog, protokol MQTT, dan dashboard cloud.',
+                'manfaat' => [
+                    'Menyiapkan lingkungan pemrograman dan menghubungkan ESP32.',
+                    'Membaca serta memeriksa data sensor untuk praktik IoT.',
+                    'Menyusun alur sensor, Wi-Fi, dan dasbor pemantauan sederhana.',
+                ],
+                'yang_didapatkan' => [
+                    '18 materi dalam 6 modul',
+                    'Video pembelajaran terstruktur',
+                    'Proyek praktik IoT',
+                ],
+                'persyaratan' => 'Komputer dengan Arduino IDE, koneksi internet, ESP32, kabel USB, dan sensor untuk praktik.',
                 'harga' => 149000,
-                'file_url' => null,
+                'file_url' => 'https://www.youtube.com/watch?v=technova-esp32-iot',
             ],
             [
                 'id_kategori' => $katCourses->id,
@@ -99,7 +132,7 @@ class TechnovaDataSeeder extends Seeder
                 'format' => 'Video + Project',
                 'deskripsi' => 'Arsitektur end-to-end monitoring sistem industri secara real-time dengan database time-series.',
                 'harga' => 199000,
-                'file_url' => null,
+                'file_url' => 'https://www.youtube.com/watch?v=technova-iot-monitoring',
             ],
             [
                 'id_kategori' => $katCourses->id,
@@ -108,7 +141,7 @@ class TechnovaDataSeeder extends Seeder
                 'format' => 'Video + Workbook',
                 'deskripsi' => 'Prinsip kerja sel surya, perhitungan beban listrik, dimensi panel, solar charge controller, dan baterai.',
                 'harga' => 149000,
-                'file_url' => null,
+                'file_url' => 'https://www.youtube.com/watch?v=technova-solar-pv',
             ],
         ];
 
@@ -119,13 +152,98 @@ class TechnovaDataSeeder extends Seeder
             );
         }
 
+        // 3b. Sample Curriculum Lessons (ProdukMateri)
+        $espCourse = Produk::where('nama_produk', 'ESP32 for IoT')->first();
+        if ($espCourse !== null) {
+            $espLessons = [
+                [
+                    'judul_modul' => 'Arsitektur & alur kerja IoT',
+                    'judul_materi' => 'Pengenalan Arsitektur ESP32 & Sensor',
+                    'deskripsi' => 'Materi pengantar alur sensor, perangkat mikrokontroler, dan koneksi Wi-Fi.',
+                    'tipe' => 'video',
+                    'konten_url' => 'https://www.youtube.com/watch?v=technova-esp32-modul-1',
+                    'durasi' => '12:30',
+                    'urutan' => 1,
+                    'is_preview' => true,
+                ],
+                [
+                    'judul_modul' => 'Penyiapan lingkungan ESP32',
+                    'judul_materi' => 'Instalasi Arduino IDE & Board ESP32',
+                    'deskripsi' => 'Langkah penyiapan driver USB CP2102 dan board manager ESP32.',
+                    'tipe' => 'video',
+                    'konten_url' => 'https://www.youtube.com/watch?v=technova-esp32-modul-2',
+                    'durasi' => '15:10',
+                    'urutan' => 2,
+                    'is_preview' => false,
+                ],
+                [
+                    'judul_modul' => 'Integrasi & kalibrasi sensor',
+                    'judul_materi' => 'Kalibrasi Sensor Suhu & Kelembapan DHT22',
+                    'deskripsi' => 'Pelajari cara mengkalibrasi sensor suhu dan kelembapan DHT22 pada ESP32 untuk pembacaan akurat.',
+                    'tipe' => 'video',
+                    'konten_url' => 'https://www.youtube.com/watch?v=technova-esp32-dht22',
+                    'durasi' => '18:42',
+                    'urutan' => 3,
+                    'is_preview' => false,
+                ],
+            ];
+
+            foreach ($espLessons as $lesson) {
+                ProdukMateri::updateOrCreate(
+                    [
+                        'id_produk' => $espCourse->id,
+                        'urutan' => $lesson['urutan'],
+                    ],
+                    $lesson
+                );
+            }
+        }
+
+        $introCourse = Produk::where('nama_produk', 'Pengantar IoT')->first();
+        if ($introCourse !== null) {
+            $introLessons = [
+                [
+                    'judul_modul' => 'Dasar IoT',
+                    'judul_materi' => 'Mengenal Internet of Things',
+                    'deskripsi' => 'Pengantar konsep dan contoh sehari-hari penerapan IoT.',
+                    'tipe' => 'video',
+                    'konten_url' => 'https://www.youtube.com/watch?v=technova-intro-1',
+                    'durasi' => '10:00',
+                    'urutan' => 1,
+                    'is_preview' => true,
+                ],
+                [
+                    'judul_modul' => 'Dasar IoT',
+                    'judul_materi' => 'Perangkat, sensor, dan konektivitas',
+                    'deskripsi' => 'Materi ringkas komponen utama sistem pemantauan.',
+                    'tipe' => 'video',
+                    'konten_url' => 'https://www.youtube.com/watch?v=technova-intro-2',
+                    'durasi' => '11:20',
+                    'urutan' => 2,
+                    'is_preview' => true,
+                ],
+            ];
+
+            foreach ($introLessons as $lesson) {
+                ProdukMateri::updateOrCreate(
+                    [
+                        'id_produk' => $introCourse->id,
+                        'urutan' => $lesson['urutan'],
+                    ],
+                    $lesson
+                );
+            }
+        }
+
         // 4. Digital Products (dibawah Digital Products category)
-        // private directory ada di storage/app/private/digital-products
         $digitalFiles = [
+            'digital-products/templat-catatan-praktikum.pdf' => "TECHNOVA FREE TEMPLATE\nJudul: Templat Catatan Praktikum\nFormat: PDF Siap Cetak",
             'digital-products/modul-praktikum-iot-esp32.zip' => "TECHNOVA DIGITAL PRODUCT\nJudul: Modul Praktikum IoT ESP32\nFormat: PDF + Source Code ZIP\nVersi: 1.0\nHak Cipta: TECHNOVA Team",
             'digital-products/template-simulasi-daq-matlab.zip' => "TECHNOVA DIGITAL PRODUCT\nJudul: Template Simulasi Sistem Kendali & DAQ\nFormat: Simulink .slx + Guide PDF\nVersi: 2.1\nHak Cipta: TECHNOVA Team",
             'digital-products/jobsheet-instrumentasi-sensor.pdf' => "TECHNOVA DIGITAL PRODUCT\nJudul: Jobsheet Praktikum Instrumentasi & Sensor\nFormat: PDF Guidebook\nVersi: 1.2\nHak Cipta: TECHNOVA Team",
             'digital-products/gerber-smart-energy-meter.zip' => "TECHNOVA DIGITAL PRODUCT\nJudul: Schematic & Gerber Smart Energy Meter\nFormat: Gerber PCB + BOM CSV\nVersi: Rev B\nHak Cipta: TECHNOVA Team",
+            'digital-products/panduan-sensor-dasar.zip' => "TECHNOVA FREE PROJECT\nJudul: Panduan Sensor Dasar\nFormat: PDF + Kode Contoh",
+            'digital-products/pemantauan-lingkungan-esp32.zip' => "TECHNOVA PAID PROJECT\nJudul: Pemantauan Lingkungan ESP32\nFormat: Dokumentasi + Kode ESP32",
         ];
 
         foreach ($digitalFiles as $filePath => $content) {
@@ -133,6 +251,15 @@ class TechnovaDataSeeder extends Seeder
         }
 
         $digitalProducts = [
+            [
+                'id_kategori' => $katDigital->id,
+                'nama_produk' => 'Templat Catatan Praktikum',
+                'level' => 'Pemula',
+                'format' => 'PDF • Siap dicetak',
+                'deskripsi' => 'Rapikan proses praktikum Anda. Catat tujuan, susunan alat, hasil pengukuran, dan kesimpulan dalam satu format yang mudah digunakan.',
+                'harga' => 0,
+                'file_url' => 'digital-products/templat-catatan-praktikum.pdf',
+            ],
             [
                 'id_kategori' => $katDigital->id,
                 'nama_produk' => 'Modul Praktikum IoT ESP32 (Jobsheet & Skematik)',
@@ -172,14 +299,42 @@ class TechnovaDataSeeder extends Seeder
         ];
 
         foreach ($digitalProducts as $dp) {
-            $created = Produk::updateOrCreate(
+            Produk::updateOrCreate(
                 ['nama_produk' => $dp['nama_produk']],
                 $dp
             );
         }
 
-        // Testing akses produk
-        // memberi test customer akses Unlocked product 1, dan Locked product 2
+        // 4b. Purchasable/Free Projects (dibawah Projects category)
+        $projects = [
+            [
+                'id_kategori' => $katProjects->id,
+                'nama_produk' => 'Panduan Sensor Dasar',
+                'level' => 'Pemula',
+                'format' => 'Rangkaian + Kode contoh',
+                'deskripsi' => 'Mulai praktik sensor dengan langkah yang mudah diikuti: kenali pin, rangkai komponen, lalu amati hasil pembacaan pertama Anda.',
+                'harga' => 0,
+                'file_url' => 'digital-products/panduan-sensor-dasar.zip',
+            ],
+            [
+                'id_kategori' => $katProjects->id,
+                'nama_produk' => 'Pemantauan Lingkungan ESP32',
+                'level' => 'Menengah',
+                'format' => 'IoT • Sensor • Wi-Fi • Dasbor',
+                'deskripsi' => 'Pelajari alur pemantauan lingkungan berbasis ESP32, dari kebutuhan pengukuran dan integrasi sensor hingga penyajian data pada dasbor.',
+                'harga' => 99000,
+                'file_url' => 'digital-products/pemantauan-lingkungan-esp32.zip',
+            ],
+        ];
+
+        foreach ($projects as $prj) {
+            Produk::updateOrCreate(
+                ['nama_produk' => $prj['nama_produk']],
+                $prj
+            );
+        }
+
+        // 5. Testing akses produk
         $testCustomer = User::where('email', 'user@technova.id')->first();
         if ($testCustomer !== null) {
             $unlockedProduct = Produk::where('nama_produk', 'Modul Praktikum IoT ESP32 (Jobsheet & Skematik)')->first();
@@ -209,11 +364,13 @@ class TechnovaDataSeeder extends Seeder
             }
         }
 
-        // Portfolios
+        // 6. Portfolios
         $portofolios = [
             [
                 'judul_proyek' => 'Sistem Monitoring Energi PLTS Kampus',
                 'kategori' => 'Renewable Energy',
+                'level' => 'Menengah',
+                'harga' => 149000,
                 'deskripsi' => 'Pengembangan sistem pemantauan daya listrik dan efisiensi panel surya berbasis IoT dengan logging data real-time.',
                 'teknologi' => 'ESP32, PZEM-004T, MQTT, InfluxDB, Grafana',
                 'file_url' => '/images/portofolio/plts.jpg',
@@ -221,6 +378,8 @@ class TechnovaDataSeeder extends Seeder
             [
                 'judul_proyek' => 'Digitalisasi Modul Praktikum Lab Instrumentasi',
                 'kategori' => 'Laboratory Solutions',
+                'level' => 'Lanjutan',
+                'harga' => 199000,
                 'deskripsi' => 'Perancangan jobsheet interaktif dan modul data acquisition untuk laboratorium teknik elektro dan fisika instrumen.',
                 'teknologi' => 'DAQ, LabVIEW, Python, Modbus RS485',
                 'file_url' => '/images/portofolio/lab.jpg',
@@ -228,6 +387,8 @@ class TechnovaDataSeeder extends Seeder
             [
                 'judul_proyek' => 'Smart Greenhouse Monitoring & Automation',
                 'kategori' => 'IoT & Electronics',
+                'level' => 'Pemula',
+                'harga' => 0,
                 'deskripsi' => 'Sistem pemantauan mikroklimat greenhouse otomatis untuk pengendalian kelembaban tanah, suhu, dan intensitas cahaya.',
                 'teknologi' => 'NodeMCU, DHT22, Capacitive Sensor, Cloud Dashboard',
                 'file_url' => '/images/portofolio/greenhouse.jpg',

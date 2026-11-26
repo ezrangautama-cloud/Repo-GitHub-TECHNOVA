@@ -9,6 +9,8 @@ class Portofolio extends Model
     protected $fillable = [
         'judul_proyek',
         'kategori',
+        'level',
+        'harga',
         'deskripsi',
         'teknologi',
         'file_url',
