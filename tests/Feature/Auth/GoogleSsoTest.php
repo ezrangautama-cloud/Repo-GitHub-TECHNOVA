@@ -79,7 +79,7 @@ class GoogleSsoTest extends TestCase
 
         $response = $this->get('/auth/google/callback');
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('admin.kursus'));
 
         $this->assertDatabaseHas('users', [
             'id' => $existing->id,

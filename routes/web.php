@@ -15,8 +15,28 @@ Route::get('/login', function () {
     ]);
 })->name('login');
 
-Route::post('/login', function () {
-    return redirect()->route('dashboard');
+Route::post('/login', function (\Illuminate\Http\Request $request) {
+    $credentials = $request->validate([
+        'username' => 'required',
+        'password' => 'required',
+    ], [
+        'username.required' => 'Email atau username wajib diisi.',
+        'password.required' => 'Kata sandi wajib diisi.',
+    ]);
+
+    $user = \App\Models\User::where('email', $credentials['username'])
+        ->orWhere('name', $credentials['username'])
+        ->first();
+
+    if ($user && \Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
+        \Illuminate\Support\Facades\Auth::login($user, $request->boolean('remember'));
+        $request->session()->regenerate();
+
+        $target = $user->isAdmin() ? route('admin.kursus') : route('dashboard');
+        return redirect()->intended($target)->with('success', 'Selamat datang kembali, ' . $user->name . '!');
+    }
+
+    return back()->with('error', 'Email/Username atau kata sandi yang Anda masukkan salah!')->withInput();
 });
 
 Route::post('/logout', function (\Illuminate\Http\Request $request) {

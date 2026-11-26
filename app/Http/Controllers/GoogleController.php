@@ -73,7 +73,15 @@ class GoogleController extends Controller
             }
         }
 
-        return redirect()->intended(route('dashboard'))
+        $target = $user->isAdmin() ? route('admin.kursus') : route('dashboard');
+
+        // Pastikan url.intended tidak mengarah ke URL callback Google atau domain lain
+        $intended = $request->session()->get('url.intended');
+        if ($intended && !str_contains($intended, '/auth/google')) {
+            return redirect()->intended($target)->with('success', 'Selamat datang, ' . $user->name . '!');
+        }
+
+        return redirect()->to($target)
             ->with('success', 'Selamat datang, ' . $user->name . '!');
     }
 }
