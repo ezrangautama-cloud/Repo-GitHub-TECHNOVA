@@ -28,6 +28,11 @@ class ServiceController extends Controller
                     $q->where('nama_kategori', 'like', "%{$cat}%");
                 });
             }
+        } else {
+            // Default: tampilkan hanya layanan (bukan Kursus, Produk Digital, atau Projects)
+            $query->whereHas('kategori', function ($q) {
+                $q->whereNotIn('nama_kategori', ['Digital Products', 'Courses', 'Projects']);
+            });
         }
 
         // Search query
