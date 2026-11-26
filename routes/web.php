@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GoogleController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -8,11 +9,27 @@ Route::get('/', function () {
 });
 
 Route::get('/login', function () {
-    return Inertia::render('Auth/Login');
+    return Inertia::render('Auth/Login', [
+        'error' => session('error'),
+        'success' => session('success'),
+    ]);
 })->name('login');
 
 Route::post('/login', function () {
     return redirect()->route('dashboard');
+});
+
+Route::post('/logout', function (\Illuminate\Http\Request $request) {
+    \Illuminate\Support\Facades\Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+    return redirect()->route('login')->with('success', 'Anda telah berhasil logout dari sistem.');
+})->name('logout');
+
+// Google SSO Authentication (seperti pada ppw/laravel)
+Route::middleware('guest')->group(function () {
+    Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
+    Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
 });
 
 Route::get('/dashboard', function () {
