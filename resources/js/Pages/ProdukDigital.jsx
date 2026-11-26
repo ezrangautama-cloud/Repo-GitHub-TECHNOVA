@@ -12,7 +12,7 @@ const FALLBACK_PRODUCTS = [
         harga: 'Rp 79.000',
         meta: 'PDF + KODE · VERSI 2.0',
         deskripsi: 'Urutan praktik siap pakai untuk belajar dari sensor hingga dasbor.',
-        href: '/produk/pengantar-iot',
+        href: '/produk-digital/1',
     },
     {
         id: 2,
@@ -21,7 +21,7 @@ const FALLBACK_PRODUCTS = [
         harga: 'Rp 49.000',
         meta: 'PDF · 86 HALAMAN',
         deskripsi: 'Catatan konsep, contoh penyelesaian, dan latihan praktik elektronika.',
-        href: '/produk/pengantar-iot',
+        href: '/produk-digital/2',
     },
     {
         id: 3,
@@ -30,7 +30,7 @@ const FALLBACK_PRODUCTS = [
         harga: 'Rp 59.000',
         meta: 'PDF + KODE · 12 PRAKTIKUM',
         deskripsi: 'Aktivitas mikrokontroler terpandu dengan kode awal yang dapat diubah.',
-        href: '/produk/pengantar-iot',
+        href: '/produk-digital/3',
     },
 ];
 
@@ -46,7 +46,7 @@ export default function ProdukDigital({ initialProducts = null }) {
                 harga: typeof p.harga === 'number' ? `Rp ${Number(p.harga).toLocaleString('id-ID')}` : (p.harga || 'Rp 0'),
                 meta: (p.format || 'PDF').toUpperCase(),
                 deskripsi: p.deskripsi || '',
-                href: p.download_url || '/produk/pengantar-iot',
+                href: `/produk-digital/${p.id}`,
             }));
         }
         return FALLBACK_PRODUCTS;
@@ -69,7 +69,7 @@ export default function ProdukDigital({ initialProducts = null }) {
                             harga: `Rp ${Number(p.harga || 0).toLocaleString('id-ID')}`,
                             meta: (p.format || 'PDF').toUpperCase(),
                             deskripsi: p.deskripsi || '',
-                            href: p.download_url || '/produk/pengantar-iot',
+                            href: `/produk-digital/${p.id}`,
                         }))
                     );
                 }

@@ -130,14 +130,14 @@ export default function EngineeringToolsSection() {
                                 <p class="text-slate-400 text-xs mt-1">Power in watts</p>
                             </div>
 
-                            <div class="mt-6">
+                            <div className="mt-6">
                                 <Link
-                                    href={activeTool === 0 ? '/alat/daya-listrik' : activeTool === 1 ? '/alat/plts' : '/alat/resistor-led'}
-                                    class="inline-flex items-center gap-2 text-xs font-bold text-slate-900 hover:text-cyan-500 transition"
+                                    href="/alat"
+                                    className="inline-flex items-center gap-2 text-xs font-bold text-slate-900 hover:text-cyan-500 transition"
                                 >
                                     <span>Explore all calculators</span>
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                                     </svg>
                                 </Link>
                             </div>

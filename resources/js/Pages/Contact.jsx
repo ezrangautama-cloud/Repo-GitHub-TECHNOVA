@@ -10,12 +10,37 @@ export default function Contact() {
         jenis: '',
         konteks: '',
     });
+    const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [serverMessage, setServerMessage] = useState(null);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.nama || !form.email || !form.jenis || !form.konteks) return;
-        setSubmitted(true);
+        setSubmitting(true);
+        try {
+            const res = await fetch('/api/services/request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    tipe: form.jenis,
+                    email: form.email,
+                    deskripsi: `Pengirim: ${form.nama}\n\nKonteks:\n${form.konteks}`,
+                }),
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                setServerMessage(data.message || 'Permintaan layanan Anda berhasil diajukan!');
+            }
+            setSubmitted(true);
+        } catch {
+            setSubmitted(true);
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -90,7 +115,7 @@ export default function Contact() {
 
                         {submitted && (
                             <div className="bg-[#DDF8FC] border border-[#3AE7DF] text-[#071A2F] rounded-lg px-4 py-3 text-sm font-medium">
-                                Terima kasih, {form.nama}! Pertanyaan Anda telah kami catat dan tim TECHNOVA akan segera menghubungi Anda melalui {form.email}.
+                                {serverMessage || `Terima kasih, ${form.nama}! Pertanyaan Anda telah kami catat dan tim TECHNOVA akan segera menghubungi Anda melalui ${form.email}.`}
                             </div>
                         )}
 
@@ -161,9 +186,10 @@ export default function Contact() {
                             </p>
                             <button
                                 type="submit"
-                                className="inline-flex items-center justify-center gap-2 bg-[#3AE7DF] hover:bg-cyan-300 border border-[#3AE7DF] text-[#0B1F3A] px-5 h-[42px] rounded-md text-sm font-bold transition cursor-pointer"
+                                disabled={submitting}
+                                className="inline-flex items-center justify-center gap-2 bg-[#3AE7DF] hover:bg-cyan-300 disabled:opacity-60 border border-[#3AE7DF] text-[#0B1F3A] px-5 h-[42px] rounded-md text-sm font-bold transition cursor-pointer"
                             >
-                                <span>Kirim pertanyaan</span>
+                                <span>{submitting ? 'Mengirim...' : 'Kirim pertanyaan'}</span>
                                 <span>&rarr;</span>
                             </button>
                         </div>

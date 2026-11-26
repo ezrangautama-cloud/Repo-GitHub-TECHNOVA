@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 
-export default function ProdukDetail() {
+export default function ProdukDetail({ course = null }) {
     const [userDropdownOpen, setUserDropdownOpen] = useState(false);
     const [enrolled, setEnrolled] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
+
+    const courseTitle = course?.nama_produk || 'Pengantar IoT';
+    const courseDesc = course?.deskripsi || 'Kenali cara perangkat, sensor, dan internet saling terhubung. Mulai dari konsep dasar sebelum melangkah ke pemrograman ESP32.';
+    const isFree = !course || Number(course.harga || 0) === 0;
+    const priceDisplay = isFree ? 'Rp0' : `Rp ${Number(course.harga).toLocaleString('id-ID')}`;
+    const levelDisplay = course?.level || (isFree ? 'Gratis' : 'Berbayar');
 
     const showToast = (msg) => {
         setToastMessage(msg);
@@ -87,11 +93,11 @@ export default function ProdukDetail() {
                     {/* Navigation Menu Links */}
                     <nav className="hidden md:flex items-center gap-8 text-xs font-semibold text-slate-700">
                         <Link href="/" className="hover:text-cyan-600 transition">Beranda</Link>
-                        <a href="#layanan" className="hover:text-cyan-600 transition">Layanan</a>
-                        <Link href="/admin/kursus" className="text-slate-900 font-bold hover:text-cyan-600 transition">Kursus</Link>
-                        <Link href="/admin/produk-digital" className="hover:text-cyan-600 transition">Produk Digital</Link>
-                        <a href="#proyek" className="hover:text-cyan-600 transition">Proyek</a>
-                        <a href="#tentang" className="hover:text-cyan-600 transition">Tentang</a>
+                        <Link href="/layanan" className="hover:text-cyan-600 transition">Layanan</Link>
+                        <Link href="/kursus" className="text-slate-900 font-bold hover:text-cyan-600 transition">Kursus</Link>
+                        <Link href="/produk-digital" className="hover:text-cyan-600 transition">Produk Digital</Link>
+                        <Link href="/proyek" className="hover:text-cyan-600 transition">Proyek</Link>
+                        <Link href="/tentang" className="hover:text-cyan-600 transition">Tentang</Link>
                     </nav>
 
                     {/* User Profile Badge (NP Nadia Putri) */}
@@ -166,14 +172,14 @@ export default function ProdukDetail() {
                         <div className="flex items-center gap-2 text-slate-400">
                             <Link href="/" className="hover:text-white transition">Beranda</Link>
                             <span>/</span>
-                            <Link href="/admin/kursus" className="hover:text-white transition">Kursus</Link>
+                            <Link href="/kursus" className="hover:text-white transition">Kursus</Link>
                             <span>/</span>
-                            <span className="text-slate-200">Pengantar IoT</span>
+                            <span className="text-slate-200">{courseTitle}</span>
                         </div>
 
                         {/* Back Link */}
                         <Link
-                            href="/admin/kursus"
+                            href="/kursus"
                             className="text-xs font-semibold text-[#00F0FF] hover:underline flex items-center gap-1.5 self-start sm:self-auto group"
                         >
                             <span className="group-hover:-translate-x-0.5 transition-transform">&larr;</span>
@@ -191,18 +197,18 @@ export default function ProdukDetail() {
                                     Kursus
                                 </span>
                                 <span className="bg-white/10 text-white text-xs font-semibold px-3 py-0.5 rounded-full backdrop-blur-xs border border-white/10">
-                                    Gratis
+                                    {levelDisplay}
                                 </span>
                             </div>
 
                             {/* Heading */}
                             <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-                                Pengantar IoT
+                                {courseTitle}
                             </h1>
 
                             {/* Subtitle */}
                             <p className="text-sm md:text-base text-slate-300 mt-4 leading-relaxed max-w-xl font-normal">
-                                Kenali cara perangkat, sensor, dan internet saling terhubung. Mulai dari konsep dasar sebelum melangkah ke pemrograman ESP32.
+                                {courseDesc}
                             </p>
 
                             {/* Highlights Meta Row */}
@@ -374,13 +380,13 @@ export default function ProdukDetail() {
                             {/* Card 4: Pricing & CTA Box */}
                             <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                                    AKSES GRATIS
+                                    {isFree ? 'AKSES GRATIS' : 'AKSES KURSUS'}
                                 </span>
                                 <div className="text-3xl font-black text-slate-900 mt-1 tracking-tight">
-                                    Rp0
+                                    {priceDisplay}
                                 </div>
                                 <p className="text-xs text-slate-500 mt-0.5 pb-4 border-b border-slate-100">
-                                    Tanpa pembayaran. Gunakan akun Anda.
+                                    {isFree ? 'Tanpa pembayaran. Gunakan akun Anda.' : 'Akses penuh materi & studi kasus.'}
                                 </p>
 
                                 <div className="mt-4">

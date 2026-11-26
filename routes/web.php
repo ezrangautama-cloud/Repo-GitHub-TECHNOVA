@@ -101,7 +101,23 @@ Route::get('/kontak', function () {
     return Inertia::render('Contact');
 })->name('kontak');
 
+Route::get('/layanan', function () {
+    $services = \App\Models\Produk::with('kategori')
+        ->whereHas('kategori', function ($q) {
+            $q->whereNotIn('nama_kategori', ['Digital Products', 'Courses']);
+        })
+        ->latest()
+        ->get();
+
+    return Inertia::render('Layanan', [
+        'initialServices' => $services,
+    ]);
+})->name('layanan');
+
 // Engineering Calculators (Section 6)
+Route::get('/alat', function () {
+    return Inertia::render('Kalkulator/Index');
+})->name('alat.index');
 Route::get('/alat/daya-listrik', function () {
     return Inertia::render('Kalkulator/DayaListrik');
 })->name('alat.daya-listrik');
@@ -134,6 +150,24 @@ Route::get('/checkout/sukses', function () {
 Route::get('/kursus/pengantar-iot', function () {
     return Inertia::render('Admin/ProdukDetail');
 })->name('kursus.detail');
+
+Route::get('/kursus/{id}', function ($id) {
+    if ($id === 'pengantar-iot') {
+        return Inertia::render('Admin/ProdukDetail');
+    }
+    $course = is_numeric($id) ? \App\Models\Produk::with('kategori')->find($id) : null;
+    return Inertia::render('Admin/ProdukDetail', [
+        'course' => $course,
+    ]);
+})->name('kursus.show');
+
+Route::get('/produk-digital/{id}', function ($id) {
+    $product = is_numeric($id) ? \App\Models\Produk::with('kategori')->find($id) : null;
+    return Inertia::render('ProdukDigital/Detail', [
+        'id' => $id,
+        'initialProduct' => $product,
+    ]);
+})->name('produk-digital.detail');
 
 Route::get('/produk/pengantar-iot', function () {
     return Inertia::render('Admin/ProdukDetail');

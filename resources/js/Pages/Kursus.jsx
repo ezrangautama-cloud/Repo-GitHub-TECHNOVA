@@ -12,7 +12,7 @@ const FALLBACK_COURSES = [
         harga: 'Rp 149.000',
         meta: 'PEMULA · 18 MATERI · Video + Proyek',
         deskripsi: 'Materi terstruktur, penjelasan teknis yang jelas, dan proyek praktik IoT.',
-        href: '/kursus/pengantar-iot'
+        href: '/kursus/1'
     },
     {
         id: 2,
@@ -21,7 +21,7 @@ const FALLBACK_COURSES = [
         harga: 'Rp 199.000',
         meta: 'MENENGAH · 24 MATERI · Video + Proyek',
         deskripsi: 'Bangun sensor, konektivitas, dasbor, dan alur pemantauan yang andal.',
-        href: '/kursus/pengantar-iot'
+        href: '/kursus/2'
     },
     {
         id: 3,
@@ -30,7 +30,7 @@ const FALLBACK_COURSES = [
         harga: 'Rp 99.000',
         meta: 'PEMULA · 14 MATERI · Video + PDF',
         deskripsi: 'Komponen dasar, pengukuran, rangkaian, dan praktik elektronika langsung.',
-        href: '/kursus/pengantar-iot'
+        href: '/kursus/3'
     },
     {
         id: 4,
@@ -39,7 +39,7 @@ const FALLBACK_COURSES = [
         harga: 'Rp 149.000',
         meta: 'PEMULA · 14 MATERI · Video + Buku Kerja',
         deskripsi: 'Pahami kapasitas PLTS, aliran energi, baterai, dan keputusan sistem yang aman.',
-        href: '/kursus/pengantar-iot'
+        href: '/kursus/4'
     }
 ];
 
@@ -54,7 +54,7 @@ export default function Kursus({ initialCourses = null }) {
         harga: typeof item.harga === 'number' ? `Rp ${Number(item.harga).toLocaleString('id-ID')}` : (item.harga || 'Rp 0'),
         meta: item.meta || `${(item.level || 'PEMULA').toUpperCase()} · ${(item.format || 'Video + Proyek')}`,
         deskripsi: item.deskripsi || '',
-        href: '/kursus/pengantar-iot'
+        href: item.id ? `/kursus/${item.id}` : '/kursus/pengantar-iot'
     });
 
     const [courses, setCourses] = useState(() => {

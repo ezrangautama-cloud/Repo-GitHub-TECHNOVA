@@ -6,7 +6,7 @@ export default function Navbar({ active = 'beranda' }) {
 
     const navLinks = [
         { key: 'beranda', label: 'Beranda', href: '/' },
-        { key: 'layanan', label: 'Layanan', href: '/#layanan' },
+        { key: 'layanan', label: 'Layanan', href: '/layanan' },
         { key: 'kursus', label: 'Kursus', href: '/kursus' },
         { key: 'produk-digital', label: 'Produk Digital', href: '/produk-digital' },
         { key: 'proyek', label: 'Proyek', href: '/proyek' },

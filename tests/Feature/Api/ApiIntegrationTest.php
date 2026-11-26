@@ -130,4 +130,17 @@ class ApiIntegrationTest extends TestCase
             ])
             ->assertJsonFragment(['tipe' => 'Konsultasi IoT']);
     }
+
+    public function test_public_pages_and_routes_load_successfully(): void
+    {
+        $this->get('/layanan')->assertOk();
+        $this->get('/alat')->assertOk();
+        $this->get('/kursus')->assertOk();
+        $this->get('/proyek')->assertOk();
+        $this->get('/produk-digital')->assertOk();
+        $this->get('/kontak')->assertOk();
+        $this->get('/kursus/pengantar-iot')->assertOk();
+        $this->get('/kursus/1')->assertOk();
+        $this->get('/produk-digital/1')->assertOk();
+    }
 }
