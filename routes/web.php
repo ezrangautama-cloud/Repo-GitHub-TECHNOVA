@@ -25,7 +25,21 @@ Route::get('/profil', function () {
 })->name('profil');
 
 Route::get('/kursus-saya', function () {
-    return Inertia::render('KursusSaya');
+    $courses = \App\Models\Produk::with('kategori')
+        ->whereHas('kategori', fn($q) => $q->where('nama_kategori', 'Courses'))
+        ->latest()
+        ->get();
+    $digitalProducts = \App\Models\Produk::with('kategori')
+        ->whereHas('kategori', fn($q) => $q->where('nama_kategori', 'Digital Products'))
+        ->latest()
+        ->get();
+    $portofolios = \App\Models\Portofolio::latest()->get();
+
+    return Inertia::render('KursusSaya', [
+        'initialCourses' => $courses,
+        'initialProducts' => $digitalProducts,
+        'initialProjects' => $portofolios,
+    ]);
 })->name('kursus-saya');
 
 Route::get('/kursus-saya/materi', function () {
@@ -50,16 +64,71 @@ Route::get('/pengaturan', function () {
 
 // Public Catalog Routes
 Route::get('/kursus', function () {
-    return Inertia::render('Kursus');
+    $courses = \App\Models\Produk::with('kategori')
+        ->whereHas('kategori', fn($q) => $q->where('nama_kategori', 'Courses'))
+        ->latest()
+        ->get();
+
+    return Inertia::render('Kursus', [
+        'initialCourses' => $courses,
+    ]);
 })->name('kursus');
 
 Route::get('/proyek', function () {
-    return Inertia::render('Proyek');
+    $portofolios = \App\Models\Portofolio::latest()->get();
+
+    return Inertia::render('Proyek', [
+        'initialProjects' => $portofolios,
+    ]);
 })->name('proyek');
 
 Route::get('/produk-digital', function () {
-    return Inertia::render('ProdukDigital');
+    $products = \App\Models\Produk::with('kategori')
+        ->whereHas('kategori', fn($q) => $q->where('nama_kategori', 'Digital Products'))
+        ->latest()
+        ->get();
+
+    return Inertia::render('ProdukDigital', [
+        'initialProducts' => $products,
+    ]);
 })->name('produk-digital');
+
+Route::get('/tentang', function () {
+    return Inertia::render('About');
+})->name('tentang');
+
+Route::get('/kontak', function () {
+    return Inertia::render('Contact');
+})->name('kontak');
+
+// Engineering Calculators (Section 6)
+Route::get('/alat/daya-listrik', function () {
+    return Inertia::render('Kalkulator/DayaListrik');
+})->name('alat.daya-listrik');
+
+Route::get('/alat/plts', function () {
+    return Inertia::render('Kalkulator/Plts', [
+        'initialEnergi' => (float) request()->query('energi', 7.3),
+        'initialBeban'  => (int) request()->query('beban', 600),
+    ]);
+})->name('alat.plts');
+
+Route::get('/alat/resistor-led', function () {
+    return Inertia::render('Kalkulator/ResistorLed');
+})->name('alat.resistor-led');
+
+// Checkout Flow (Section 6)
+Route::get('/checkout', function () {
+    return Inertia::render('Checkout/Ringkasan');
+})->name('checkout.ringkasan');
+
+Route::get('/checkout/qris', function () {
+    return Inertia::render('Checkout/Qris');
+})->name('checkout.qris');
+
+Route::get('/checkout/sukses', function () {
+    return Inertia::render('Checkout/Sukses');
+})->name('checkout.sukses');
 
 // Course and Product Detail Routes
 Route::get('/kursus/pengantar-iot', function () {
@@ -115,6 +184,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/pesanan', function () {
         return Inertia::render('Admin/Pesanan');
     })->name('pesanan');
+
+    Route::get('/konsultasi', function () {
+        return Inertia::render('Admin/Konsultasi');
+    })->name('konsultasi');
 
     // Fallbacks for other sidebar menu links in development
     Route::get('/{menu}', function ($menu) {

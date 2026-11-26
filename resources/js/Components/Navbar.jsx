@@ -10,7 +10,7 @@ export default function Navbar({ active = 'beranda' }) {
         { key: 'kursus', label: 'Kursus', href: '/kursus' },
         { key: 'produk-digital', label: 'Produk Digital', href: '/produk-digital' },
         { key: 'proyek', label: 'Proyek', href: '/proyek' },
-        { key: 'tentang', label: 'Tentang', href: '/#tentang' },
+        { key: 'tentang', label: 'Tentang', href: '/tentang' },
     ];
 
     return (

@@ -1,42 +1,81 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import Navbar from '@/Components/Navbar';
 import Footer from '@/Components/Footer';
 import HardwareIllustration from '@/Components/HardwareIllustration';
 
-export default function ProdukDigital() {
+const FALLBACK_PRODUCTS = [
+    {
+        id: 1,
+        nama: 'Lembar Kerja Pemantauan IoT ESP32',
+        tingkat: 'Pemula',
+        harga: 'Rp 79.000',
+        meta: 'PDF + KODE · VERSI 2.0',
+        deskripsi: 'Urutan praktik siap pakai untuk belajar dari sensor hingga dasbor.',
+        href: '/produk/pengantar-iot',
+    },
+    {
+        id: 2,
+        nama: 'Modul Elektronika Dasar',
+        tingkat: 'Pemula',
+        harga: 'Rp 49.000',
+        meta: 'PDF · 86 HALAMAN',
+        deskripsi: 'Catatan konsep, contoh penyelesaian, dan latihan praktik elektronika.',
+        href: '/produk/pengantar-iot',
+    },
+    {
+        id: 3,
+        nama: 'Lembar Kerja Arduino Interaktif',
+        tingkat: 'Menengah',
+        harga: 'Rp 59.000',
+        meta: 'PDF + KODE · 12 PRAKTIKUM',
+        deskripsi: 'Aktivitas mikrokontroler terpandu dengan kode awal yang dapat diubah.',
+        href: '/produk/pengantar-iot',
+    },
+];
+
+export default function ProdukDigital({ initialProducts = null }) {
     const [selectedLevel, setSelectedLevel] = useState('Semua produk');
     const [searchQuery, setSearchQuery] = useState('');
-
-    const products = [
-        {
-            id: 1,
-            nama: 'Lembar Kerja Pemantauan IoT ESP32',
-            tingkat: 'Belum ditetapkan',
-            harga: 'Rp 79.000',
-            meta: 'PDF + KODE · VERSI 2.0',
-            deskripsi: 'Urutan praktik siap pakai untuk belajar dari sensor hingga dasbor.',
-            href: '/produk/pengantar-iot'
-        },
-        {
-            id: 2,
-            nama: 'Modul Elektronika Dasar',
-            tingkat: 'Belum ditetapkan',
-            harga: 'Rp 49.000',
-            meta: 'PDF · 86 HALAMAN',
-            deskripsi: 'Catatan konsep, contoh penyelesaian, dan latihan praktik elektronika.',
-            href: '/produk/pengantar-iot'
-        },
-        {
-            id: 3,
-            nama: 'Lembar Kerja Arduino Interaktif',
-            tingkat: 'Belum ditetapkan',
-            harga: 'Rp 59.000',
-            meta: 'PDF + KODE · 12 PRAKTIKUM',
-            deskripsi: 'Aktivitas mikrokontroler terpandu dengan kode awal yang dapat diubah.',
-            href: '/produk/pengantar-iot'
+    const [products, setProducts] = useState(() => {
+        if (Array.isArray(initialProducts) && initialProducts.length > 0) {
+            return initialProducts.map((p) => ({
+                id: p.id,
+                nama: p.nama_produk || p.nama,
+                tingkat: p.level || 'Semua',
+                harga: typeof p.harga === 'number' ? `Rp ${Number(p.harga).toLocaleString('id-ID')}` : (p.harga || 'Rp 0'),
+                meta: (p.format || 'PDF').toUpperCase(),
+                deskripsi: p.deskripsi || '',
+                href: p.download_url || '/produk/pengantar-iot',
+            }));
         }
-    ];
+        return FALLBACK_PRODUCTS;
+    });
+
+    useEffect(() => {
+        const params = new URLSearchParams();
+        if (searchQuery) params.set('q', searchQuery);
+        if (selectedLevel !== 'Semua produk') params.set('level', selectedLevel);
+
+        fetch(`/api/digital-products?${params.toString()}`)
+            .then((res) => (res.ok ? res.json() : null))
+            .then((json) => {
+                if (Array.isArray(json?.data) && json.data.length > 0) {
+                    setProducts(
+                        json.data.map((p) => ({
+                            id: p.id,
+                            nama: p.nama_produk,
+                            tingkat: p.level || 'Semua',
+                            harga: `Rp ${Number(p.harga || 0).toLocaleString('id-ID')}`,
+                            meta: (p.format || 'PDF').toUpperCase(),
+                            deskripsi: p.deskripsi || '',
+                            href: p.download_url || '/produk/pengantar-iot',
+                        }))
+                    );
+                }
+            })
+            .catch(() => {});
+    }, [searchQuery, selectedLevel]);
 
     const filteredProducts = products.filter((item) => {
         const matchesSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||

@@ -50,6 +50,42 @@ export default function Proyek({ title = 'Pengelolaan proyek', activeMenu = 'pro
 
     const [projects, setProjects] = useState(initialProjects);
 
+    React.useEffect(() => {
+        if (activeMenu === 'produk-digital') {
+            fetch('/api/digital-products')
+                .then((res) => (res.ok ? res.json() : null))
+                .then((json) => {
+                    if (Array.isArray(json?.data) && json.data.length > 0) {
+                        setProjects(
+                            json.data.map((p) => ({
+                                id: p.id,
+                                nama: p.nama_produk,
+                                tingkat: p.level || 'Belum ditetapkan',
+                                harga: `Rp ${Number(p.harga || 0).toLocaleString('id-ID')}`,
+                            }))
+                        );
+                    }
+                })
+                .catch(() => {});
+        } else if (activeMenu === 'proyek') {
+            fetch('/api/portfolios')
+                .then((res) => (res.ok ? res.json() : null))
+                .then((json) => {
+                    if (Array.isArray(json?.data) && json.data.length > 0) {
+                        setProjects(
+                            json.data.map((p) => ({
+                                id: p.id,
+                                nama: p.judul_proyek,
+                                tingkat: p.kategori || 'Belum ditetapkan',
+                                harga: 'Belum ditetapkan',
+                            }))
+                        );
+                    }
+                })
+                .catch(() => {});
+        }
+    }, [activeMenu]);
+
     const filteredProjects = projects.filter((item) => {
         const matchesSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesLevel =

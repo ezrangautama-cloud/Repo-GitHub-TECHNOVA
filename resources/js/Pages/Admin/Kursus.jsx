@@ -50,6 +50,24 @@ export default function Kursus() {
 
     const [courses, setCourses] = useState(initialCourses);
 
+    React.useEffect(() => {
+        fetch('/api/courses')
+            .then((res) => (res.ok ? res.json() : null))
+            .then((json) => {
+                if (Array.isArray(json?.data) && json.data.length > 0) {
+                    setCourses(
+                        json.data.map((c) => ({
+                            id: c.id,
+                            nama: c.nama_produk,
+                            tingkat: c.level || 'Pemula',
+                            harga: typeof c.harga === 'number' ? `Rp ${Number(c.harga).toLocaleString('id-ID')}` : (c.harga || 'Rp 0'),
+                        }))
+                    );
+                }
+            })
+            .catch(() => {});
+    }, []);
+
     const filteredCourses = courses.filter((item) => {
         const matchesSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesLevel = levelFilter === 'Semua tingkat' || item.tingkat.toLowerCase() === levelFilter.toLowerCase();

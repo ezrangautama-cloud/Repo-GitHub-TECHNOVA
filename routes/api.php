@@ -12,12 +12,15 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-// Homepage Routes
+// Homepage & Portfolios Routes
 Route::get('/home', [HomeController::class, 'index']);
+Route::get('/portfolios', [HomeController::class, 'portfolios']);
 
-// Service Routes
+// Service & Course Routes
 Route::get('/services', [ServiceController::class, 'index']);
 Route::get('/services/{id}', [ServiceController::class, 'show']);
+Route::post('/services/request', [ServiceController::class, 'requestService']);
+Route::get('/courses', [ServiceController::class, 'courses']);
 
 // Digital Products Routes
 Route::get('/digital-products', [DigitalProductController::class, 'index']);

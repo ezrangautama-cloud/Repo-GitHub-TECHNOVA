@@ -1,52 +1,73 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+
+const FALLBACK_SERVICES = [
+    {
+        num: '01',
+        title: 'IoT & Electronics',
+        desc: 'Connected systems, sensor integration, and rapid electronics prototyping built for real applications.',
+        tags: ['ESP32', 'Sensors', 'Prototyping'],
+        icon: (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M3 9h2m-2 6h2m14-6h2m-2 6h2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+            </svg>
+        )
+    },
+    {
+        num: '02',
+        title: 'Instrumentation',
+        desc: 'Accurate measurement, data acquisition, and custom monitoring systems for research and industry.',
+        tags: ['DAQ', 'Measurement', 'Monitoring'],
+        icon: (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+            </svg>
+        )
+    },
+    {
+        num: '03',
+        title: 'Renewable Energy',
+        desc: 'Solar PV design, smart energy monitoring, and dependable battery system planning.',
+        tags: ['Solar PV', 'Battery', 'Energy'],
+        icon: (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+        )
+    },
+    {
+        num: '04',
+        title: 'Laboratory Solutions',
+        desc: 'Digital laboratories, practical modules, and connected monitoring for modern engineering education.',
+        tags: ['Digital Lab', 'Modules', 'Integration'],
+        icon: (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+            </svg>
+        )
+    }
+];
 
 export default function FeaturedServicesSection() {
-    const services = [
-        {
-            num: '01',
-            title: 'IoT & Electronics',
-            desc: 'Connected systems, sensor integration, and rapid electronics prototyping built for real applications.',
-            tags: ['ESP32', 'Sensors', 'Prototyping'],
-            icon: (
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M3 9h2m-2 6h2m14-6h2m-2 6h2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
-                </svg>
-            )
-        },
-        {
-            num: '02',
-            title: 'Instrumentation',
-            desc: 'Accurate measurement, data acquisition, and custom monitoring systems for research and industry.',
-            tags: ['DAQ', 'Measurement', 'Monitoring'],
-            icon: (
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
-                </svg>
-            )
-        },
-        {
-            num: '03',
-            title: 'Renewable Energy',
-            desc: 'Solar PV design, smart energy monitoring, and dependable battery system planning.',
-            tags: ['Solar PV', 'Battery', 'Energy'],
-            icon: (
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                </svg>
-            )
-        },
-        {
-            num: '04',
-            title: 'Laboratory Solutions',
-            desc: 'Digital laboratories, practical modules, and connected monitoring for modern engineering education.',
-            tags: ['Digital Lab', 'Modules', 'Integration'],
-            icon: (
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
-                </svg>
-            )
-        }
-    ];
+    const [services, setServices] = useState(FALLBACK_SERVICES);
+
+    useEffect(() => {
+        fetch('/api/services?category=services')
+            .then((res) => (res.ok ? res.json() : null))
+            .then((json) => {
+                if (Array.isArray(json?.data) && json.data.length > 0) {
+                    setServices(
+                        json.data.slice(0, 4).map((s, idx) => ({
+                            num: String(idx + 1).padStart(2, '0'),
+                            title: s.nama_produk,
+                            desc: s.deskripsi || '',
+                            tags: [s.kategori?.nama_kategori || 'Engineering', s.format || 'Solution'].filter(Boolean),
+                            icon: FALLBACK_SERVICES[idx % FALLBACK_SERVICES.length].icon,
+                        }))
+                    );
+                }
+            })
+            .catch(() => {});
+    }, []);
 
     return (
         <section id="featured-services" class="bg-[#0A1628] py-24 px-6 md:px-12 lg:px-20 text-white border-t border-slate-800">

@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import PortalLayout from '@/Layouts/PortalLayout';
 
-export default function KursusSaya() {
+export default function KursusSaya({
+    initialCourses = null,
+    initialProducts = null,
+    initialProjects = null,
+}) {
     const [activeTab, setActiveTab] = useState('kursus'); // 'kursus' | 'produk' | 'proyek'
     const [toastMessage, setToastMessage] = useState('');
 
@@ -12,133 +16,238 @@ export default function KursusSaya() {
     };
 
     // Tab 1: Kursus (4)
-    const courses = [
-        {
-            id: 1,
-            nama: 'ESP32 untuk IoT',
-            tag: 'IOT · PEMULA',
-            materi: '12 materi',
-            deskripsi: 'Materi terstruktur dan proyek praktik IoT.',
-            imageBg: 'from-slate-700 to-slate-900',
-            label: 'Breadboard ESP32'
-        },
-        {
-            id: 2,
-            nama: 'Sistem Pemantauan IoT',
-            tag: 'IOT · MONITORING',
-            materi: '18 materi',
-            deskripsi: 'Bangun sensor, konektivitas, dasbor, dan alur pemantauan yang andal.',
-            imageBg: 'from-cyan-900 to-slate-900',
-            label: 'Monitoring Workstation'
-        },
-        {
-            id: 3,
-            nama: 'Dasar PLTS',
-            tag: 'ENERGI TERBARUKAN · PEMULA',
-            materi: '8 materi',
-            deskripsi: 'Pahami kapasitas PLTS, aliran energi, baterai, dan keputusan sistem.',
-            imageBg: 'from-amber-900 to-slate-900',
-            label: 'Solar PV Inspection'
-        },
-        {
-            id: 4,
-            nama: 'Dasar Elektronika',
-            tag: 'ELEKTRONIKA · PEMULA',
-            materi: '14 materi',
-            deskripsi: 'Komponen dasar, pengukuran, rangkaian, dan praktik elektronika langsung.',
-            imageBg: 'from-indigo-900 to-slate-900',
-            label: 'Lab Workbench'
+    const [courses, setCourses] = useState(() => {
+        if (Array.isArray(initialCourses) && initialCourses.length > 0) {
+            return initialCourses.map((c, i) => ({
+                id: c.id,
+                nama: c.nama_produk || c.nama,
+                tag: (c.level ? `IOT · ${c.level}` : (c.tag || 'IOT · PEMULA')).toUpperCase(),
+                materi: c.format ? `${c.format}` : (c.materi || '12 materi'),
+                deskripsi: c.deskripsi || 'Materi terstruktur dan proyek praktik IoT.',
+                imageBg: i % 2 === 0 ? 'from-slate-700 to-slate-900' : 'from-cyan-900 to-slate-900',
+                label: c.nama_produk || 'Kursus IoT'
+            }));
         }
-    ];
+        return [
+            {
+                id: 1,
+                nama: 'ESP32 untuk IoT',
+                tag: 'IOT · PEMULA',
+                materi: '12 materi',
+                deskripsi: 'Materi terstruktur dan proyek praktik IoT.',
+                imageBg: 'from-slate-700 to-slate-900',
+                label: 'Breadboard ESP32'
+            },
+            {
+                id: 2,
+                nama: 'Sistem Pemantauan IoT',
+                tag: 'IOT · MONITORING',
+                materi: '18 materi',
+                deskripsi: 'Bangun sensor, konektivitas, dasbor, dan alur pemantauan yang andal.',
+                imageBg: 'from-cyan-900 to-slate-900',
+                label: 'Monitoring Workstation'
+            },
+            {
+                id: 3,
+                nama: 'Dasar PLTS',
+                tag: 'ENERGI TERBARUKAN · PEMULA',
+                materi: '8 materi',
+                deskripsi: 'Pahami kapasitas PLTS, aliran energi, baterai, dan keputusan sistem.',
+                imageBg: 'from-amber-900 to-slate-900',
+                label: 'Solar PV Inspection'
+            },
+            {
+                id: 4,
+                nama: 'Dasar Elektronika',
+                tag: 'ELEKTRONIKA · PEMULA',
+                materi: '14 materi',
+                deskripsi: 'Komponen dasar, pengukuran, rangkaian, dan praktik elektronika langsung.',
+                imageBg: 'from-indigo-900 to-slate-900',
+                label: 'Lab Workbench'
+            }
+        ];
+    });
 
     // Tab 2: Produk (6)
-    const products = [
-        {
-            id: 1,
-            headerBadge: 'PDF + KODE',
-            category: 'IOT · ESP32',
-            title: 'Lembar Kerja Pemantauan IoT ESP32',
-            desc: 'PDF v2.0 + kode pendamping · Urutan praktik sensor hingga dasbor',
-            btnAction: 'Akses Berkas',
-        },
-        {
-            id: 2,
-            headerBadge: 'PDF · 86 HAL',
-            category: 'ELEKTRONIKA · PEMULA',
-            title: 'Modul Elektronika Dasar',
-            desc: 'PDF · Catatan konsep, contoh penyelesaian, dan latihan praktik',
-            btnAction: 'Akses Berkas',
-        },
-        {
-            id: 3,
-            headerBadge: 'PDF + KODE · 12 PRAKTIKUM',
-            category: 'ARDUINO · MIKROKONTROLER',
-            title: 'Lembar Kerja Arduino Interaktif',
-            desc: 'PDF + kode · Aktivitas mikrokontroler terpandu dengan kode awal',
-            btnAction: 'Akses Berkas',
-        },
-        {
-            id: 4,
-            headerBadge: 'PDF · SIAP CETAK',
-            category: 'PRAKTIKUM · TEMPLAT',
-            title: 'Templat Laporan Praktikum',
-            desc: 'PDF · Format pencatatan tujuan, alat, data, dan kesimpulan',
-            btnAction: 'Unduh PDF',
-        },
-        {
-            id: 5,
-            headerBadge: 'PDF · BUKU KERJA',
-            category: 'ENERGI TERBARUKAN · PLTS',
-            title: 'Buku Kerja PLTS',
-            desc: 'PDF · Kapasitas PLTS, aliran energi, baterai, dan keputusan sistem',
-            btnAction: 'Unduh PDF',
-        },
-        {
-            id: 6,
-            headerBadge: 'PDF + KODE',
-            category: 'SENSOR · KALIBRASI',
-            title: 'Paket Kalibrasi Sensor',
-            desc: 'PDF + kode · Diagram koneksi, pembacaan sensor, dan lembar pengamatan',
-            btnAction: 'Akses Berkas',
-        },
-    ];
+    const [products, setProducts] = useState(() => {
+        if (Array.isArray(initialProducts) && initialProducts.length > 0) {
+            return initialProducts.map((p) => ({
+                id: p.id,
+                headerBadge: (p.format || 'PDF + KODE').toUpperCase(),
+                category: (p.level ? `IOT · ${p.level}` : 'IOT · DIGITAL').toUpperCase(),
+                title: p.nama_produk || p.title,
+                desc: p.deskripsi || '',
+                btnAction: p.format?.toLowerCase().includes('pdf') ? 'Unduh PDF' : 'Akses Berkas',
+                downloadUrl: `/api/digital-products/${p.id}/download`,
+            }));
+        }
+        return [
+            {
+                id: 1,
+                headerBadge: 'PDF + KODE',
+                category: 'IOT · ESP32',
+                title: 'Lembar Kerja Pemantauan IoT ESP32',
+                desc: 'PDF v2.0 + kode pendamping · Urutan praktik sensor hingga dasbor',
+                btnAction: 'Akses Berkas',
+                downloadUrl: '/api/digital-products/1/download',
+            },
+            {
+                id: 2,
+                headerBadge: 'PDF · 86 HAL',
+                category: 'ELEKTRONIKA · PEMULA',
+                title: 'Modul Elektronika Dasar',
+                desc: 'PDF · Catatan konsep, contoh penyelesaian, dan latihan praktik',
+                btnAction: 'Akses Berkas',
+                downloadUrl: '/api/digital-products/2/download',
+            },
+            {
+                id: 3,
+                headerBadge: 'PDF + KODE · 12 PRAKTIKUM',
+                category: 'ARDUINO · MIKROKONTROLER',
+                title: 'Lembar Kerja Arduino Interaktif',
+                desc: 'PDF + kode · Aktivitas mikrokontroler terpandu dengan kode awal',
+                btnAction: 'Akses Berkas',
+                downloadUrl: '/api/digital-products/3/download',
+            },
+            {
+                id: 4,
+                headerBadge: 'PDF · SIAP CETAK',
+                category: 'PRAKTIKUM · TEMPLAT',
+                title: 'Templat Laporan Praktikum',
+                desc: 'PDF · Format pencatatan tujuan, alat, data, dan kesimpulan',
+                btnAction: 'Unduh PDF',
+                downloadUrl: '/api/digital-products/4/download',
+            },
+            {
+                id: 5,
+                headerBadge: 'PDF · BUKU KERJA',
+                category: 'ENERGI TERBARUKAN · PLTS',
+                title: 'Buku Kerja PLTS',
+                desc: 'PDF · Kapasitas PLTS, aliran energi, baterai, dan keputusan sistem',
+                btnAction: 'Unduh PDF',
+                downloadUrl: '/api/digital-products/5/download',
+            },
+            {
+                id: 6,
+                headerBadge: 'PDF + KODE',
+                category: 'SENSOR · KALIBRASI',
+                title: 'Paket Kalibrasi Sensor',
+                desc: 'PDF + kode · Diagram koneksi, pembacaan sensor, dan lembar pengamatan',
+                btnAction: 'Akses Berkas',
+                downloadUrl: '/api/digital-products/6/download',
+            },
+        ];
+    });
 
     // Tab 3: Proyek (3)
-    const projects = [
-        {
-            id: 1,
-            category: 'IOT · SENSOR · WI-FI',
-            title: 'Pemantauan Lingkungan ESP32',
-            desc: 'Panduan alur proyek - Integrasi sensor, konektivitas, dan tampilan dasbor',
-            items: [
-                'Dokumentasi rancangan sistem',
-                'Panduan integrasi ESP32 & sensor',
-                'Lembar validasi & dokumentasi',
-            ]
-        },
-        {
-            id: 2,
-            category: 'ENERGI · PLTS · DAQ',
-            title: 'Pemantauan Energi PLTS',
-            desc: 'Pengukuran energi, pencatatan data, dan pemantauan sistem PLTS',
-            items: [
-                'Diagram rancangan sistem PLTS',
-                'Panduan konfigurasi DAQ',
-                'Lembar validasi hasil pengukuran',
-            ]
-        },
-        {
-            id: 3,
-            category: 'INSTRUMENTASI · LAB DIGITAL',
-            title: 'Instrumentasi Laboratorium Digital',
-            desc: 'DAQ, sensor, dan alur pembelajaran laboratorium digital modern',
-            items: [
-                'Panduan instrumentasi & sensor',
-                'Alur pengumpulan data laboratorium',
-                'Lembar dokumentasi & validasi',
-            ]
-        },
-    ];
+    const [projects, setProjects] = useState(() => {
+        if (Array.isArray(initialProjects) && initialProjects.length > 0) {
+            return initialProjects.map((proj) => ({
+                id: proj.id,
+                category: (proj.kategori || 'PROYEK').toUpperCase(),
+                title: proj.judul_proyek || proj.title,
+                desc: proj.deskripsi || '',
+                items: proj.teknologi ? proj.teknologi.split(',').map((t) => t.trim()) : [
+                    'Dokumentasi rancangan sistem',
+                    'Panduan integrasi ESP32 & sensor',
+                    'Lembar validasi & dokumentasi',
+                ]
+            }));
+        }
+        return [
+            {
+                id: 1,
+                category: 'IOT · SENSOR · WI-FI',
+                title: 'Pemantauan Lingkungan ESP32',
+                desc: 'Panduan alur proyek - Integrasi sensor, konektivitas, dan tampilan dasbor',
+                items: [
+                    'Dokumentasi rancangan sistem',
+                    'Panduan integrasi ESP32 & sensor',
+                    'Lembar validasi & dokumentasi',
+                ]
+            },
+            {
+                id: 2,
+                category: 'ENERGI · PLTS · DAQ',
+                title: 'Pemantauan Energi PLTS',
+                desc: 'Pengukuran energi, pencatatan data, dan pemantauan sistem PLTS',
+                items: [
+                    'Diagram rancangan sistem PLTS',
+                    'Panduan konfigurasi DAQ',
+                    'Lembar validasi hasil pengukuran',
+                ]
+            },
+            {
+                id: 3,
+                category: 'INSTRUMENTASI · LAB DIGITAL',
+                title: 'Instrumentasi Laboratorium Digital',
+                desc: 'DAQ, sensor, dan alur pembelajaran laboratorium digital modern',
+                items: [
+                    'Panduan instrumentasi & sensor',
+                    'Alur pengumpulan data laboratorium',
+                    'Lembar dokumentasi & validasi',
+                ]
+            },
+        ];
+    });
+
+    // Live sync with API endpoints
+    React.useEffect(() => {
+        if (activeTab === 'kursus') {
+            fetch('/api/courses')
+                .then((res) => (res.ok ? res.json() : null))
+                .then((json) => {
+                    if (Array.isArray(json?.data) && json.data.length > 0) {
+                        setCourses(json.data.map((c, i) => ({
+                            id: c.id,
+                            nama: c.nama_produk,
+                            tag: (c.level ? `IOT · ${c.level}` : 'IOT · PEMULA').toUpperCase(),
+                            materi: c.format || '12 materi',
+                            deskripsi: c.deskripsi || '',
+                            imageBg: i % 2 === 0 ? 'from-slate-700 to-slate-900' : 'from-cyan-900 to-slate-900',
+                            label: c.nama_produk
+                        })));
+                    }
+                })
+                .catch(() => {});
+        } else if (activeTab === 'produk') {
+            fetch('/api/digital-products')
+                .then((res) => (res.ok ? res.json() : null))
+                .then((json) => {
+                    if (Array.isArray(json?.data) && json.data.length > 0) {
+                        setProducts(json.data.map((p) => ({
+                            id: p.id,
+                            headerBadge: (p.format || 'PDF + KODE').toUpperCase(),
+                            category: (p.level ? `IOT · ${p.level}` : 'IOT · DIGITAL').toUpperCase(),
+                            title: p.nama_produk,
+                            desc: p.deskripsi,
+                            btnAction: p.is_unlocked ? 'Unduh Berkas' : (p.format?.toLowerCase().includes('pdf') ? 'Unduh PDF' : 'Akses Berkas'),
+                            downloadUrl: p.download_url || `/api/digital-products/${p.id}/download`,
+                        })));
+                    }
+                })
+                .catch(() => {});
+        } else if (activeTab === 'proyek') {
+            fetch('/api/portfolios')
+                .then((res) => (res.ok ? res.json() : null))
+                .then((json) => {
+                    if (Array.isArray(json?.data) && json.data.length > 0) {
+                        setProjects(json.data.map((proj) => ({
+                            id: proj.id,
+                            category: (proj.kategori || 'PROYEK').toUpperCase(),
+                            title: proj.judul_proyek,
+                            desc: proj.deskripsi,
+                            items: proj.teknologi ? proj.teknologi.split(',').map((t) => t.trim()) : [
+                                'Dokumentasi rancangan sistem',
+                                'Panduan integrasi ESP32 & sensor',
+                                'Lembar validasi & dokumentasi',
+                            ]
+                        })));
+                    }
+                })
+                .catch(() => {});
+        }
+    }, [activeTab]);
 
     const currentSearchPlaceholder = 
         activeTab === 'produk' 
@@ -326,18 +435,19 @@ export default function KursusSaya() {
 
                             {/* Buttons */}
                             <div className="px-5 pb-5 pt-3 flex items-center gap-2 border-t border-slate-100">
-                                <button
+                                <a
+                                    href={p.downloadUrl || `/api/digital-products/${p.id}/download`}
                                     onClick={() => showToast(`Mengunduh berkas ${p.title}...`)}
-                                    className="bg-[#00F0FF] hover:bg-cyan-300 text-[#061426] font-bold text-xs px-3.5 py-1.5 rounded-xl transition shadow-2xs cursor-pointer active:scale-95"
+                                    className="bg-[#00F0FF] hover:bg-cyan-300 text-[#061426] font-bold text-xs px-3.5 py-1.5 rounded-xl transition shadow-2xs cursor-pointer active:scale-95 inline-block"
                                 >
                                     {p.btnAction}
-                                </button>
-                                <button
-                                    onClick={() => showToast(`Detail ${p.title}`)}
-                                    className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs px-3.5 py-1.5 rounded-xl transition shadow-2xs cursor-pointer"
+                                </a>
+                                <Link
+                                    href="/produk/pengantar-iot"
+                                    className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs px-3.5 py-1.5 rounded-xl transition shadow-2xs inline-block"
                                 >
                                     Lihat Detail
-                                </button>
+                                </Link>
                             </div>
                         </div>
                     ))}

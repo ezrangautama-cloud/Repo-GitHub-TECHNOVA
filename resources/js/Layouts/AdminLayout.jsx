@@ -27,6 +27,7 @@ export default function AdminLayout({
         { key: 'produk-digital', label: 'Produk Digital', href: '/admin/produk-digital' },
         { key: 'proyek', label: 'Proyek', href: '/admin/proyek' },
         { key: 'pesanan', label: 'Pesanan', href: '/admin/pesanan' },
+        { key: 'konsultasi', label: 'Konsultasi', href: '/admin/konsultasi' },
     ];
 
     // Additional admin pages if currently active

@@ -1,51 +1,83 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import Navbar from '@/Components/Navbar';
 import Footer from '@/Components/Footer';
 import HardwareIllustration from '@/Components/HardwareIllustration';
 
-export default function Kursus() {
+const FALLBACK_COURSES = [
+    {
+        id: 1,
+        nama: 'ESP32 untuk IoT',
+        tingkat: 'PEMULA',
+        harga: 'Rp 149.000',
+        meta: 'PEMULA · 18 MATERI · Video + Proyek',
+        deskripsi: 'Materi terstruktur, penjelasan teknis yang jelas, dan proyek praktik IoT.',
+        href: '/kursus/pengantar-iot'
+    },
+    {
+        id: 2,
+        nama: 'Sistem Pemantauan IoT',
+        tingkat: 'MENENGAH',
+        harga: 'Rp 199.000',
+        meta: 'MENENGAH · 24 MATERI · Video + Proyek',
+        deskripsi: 'Bangun sensor, konektivitas, dasbor, dan alur pemantauan yang andal.',
+        href: '/kursus/pengantar-iot'
+    },
+    {
+        id: 3,
+        nama: 'Dasar Elektronika',
+        tingkat: 'PEMULA',
+        harga: 'Rp 99.000',
+        meta: 'PEMULA · 14 MATERI · Video + PDF',
+        deskripsi: 'Komponen dasar, pengukuran, rangkaian, dan praktik elektronika langsung.',
+        href: '/kursus/pengantar-iot'
+    },
+    {
+        id: 4,
+        nama: 'Dasar PLTS',
+        tingkat: 'PEMULA',
+        harga: 'Rp 149.000',
+        meta: 'PEMULA · 14 MATERI · Video + Buku Kerja',
+        deskripsi: 'Pahami kapasitas PLTS, aliran energi, baterai, dan keputusan sistem yang aman.',
+        href: '/kursus/pengantar-iot'
+    }
+];
+
+export default function Kursus({ initialCourses = null }) {
     const [selectedLevel, setSelectedLevel] = useState('Semua kursus');
     const [searchQuery, setSearchQuery] = useState('');
 
-    const courses = [
-        {
-            id: 1,
-            nama: 'ESP32 untuk IoT',
-            tingkat: 'PEMULA',
-            harga: 'Rp 149.000',
-            meta: 'PEMULA · 18 MATERI · Video + Proyek',
-            deskripsi: 'Materi terstruktur, penjelasan teknis yang jelas, dan proyek praktik IoT.',
-            href: '/kursus/pengantar-iot'
-        },
-        {
-            id: 2,
-            nama: 'Sistem Pemantauan IoT',
-            tingkat: 'MENENGAH',
-            harga: 'Rp 199.000',
-            meta: 'MENENGAH · 24 MATERI · Video + Proyek',
-            deskripsi: 'Bangun sensor, konektivitas, dasbor, dan alur pemantauan yang andal.',
-            href: '/kursus/pengantar-iot'
-        },
-        {
-            id: 3,
-            nama: 'Dasar Elektronika',
-            tingkat: 'PEMULA',
-            harga: 'Rp 99.000',
-            meta: 'PEMULA · 14 MATERI · Video + PDF',
-            deskripsi: 'Komponen dasar, pengukuran, rangkaian, dan praktik elektronika langsung.',
-            href: '/kursus/pengantar-iot'
-        },
-        {
-            id: 4,
-            nama: 'Dasar PLTS',
-            tingkat: 'PEMULA',
-            harga: 'Rp 149.000',
-            meta: 'PEMULA · 14 MATERI · Video + Buku Kerja',
-            deskripsi: 'Pahami kapasitas PLTS, aliran energi, baterai, dan keputusan sistem yang aman.',
-            href: '/kursus/pengantar-iot'
+    const mapCourseData = (item) => ({
+        id: item.id,
+        nama: item.nama_produk || item.nama,
+        tingkat: (item.level || item.tingkat || 'PEMULA').toUpperCase(),
+        harga: typeof item.harga === 'number' ? `Rp ${Number(item.harga).toLocaleString('id-ID')}` : (item.harga || 'Rp 0'),
+        meta: item.meta || `${(item.level || 'PEMULA').toUpperCase()} · ${(item.format || 'Video + Proyek')}`,
+        deskripsi: item.deskripsi || '',
+        href: '/kursus/pengantar-iot'
+    });
+
+    const [courses, setCourses] = useState(() => {
+        if (Array.isArray(initialCourses) && initialCourses.length > 0) {
+            return initialCourses.map(mapCourseData);
         }
-    ];
+        return FALLBACK_COURSES;
+    });
+
+    useEffect(() => {
+        const params = new URLSearchParams();
+        if (searchQuery) params.set('q', searchQuery);
+        if (selectedLevel !== 'Semua kursus') params.set('level', selectedLevel);
+
+        fetch(`/api/courses?${params.toString()}`)
+            .then((res) => (res.ok ? res.json() : null))
+            .then((json) => {
+                if (Array.isArray(json?.data) && json.data.length > 0) {
+                    setCourses(json.data.map(mapCourseData));
+                }
+            })
+            .catch(() => {});
+    }, [searchQuery, selectedLevel]);
 
     const filteredCourses = courses.filter((item) => {
         const matchesSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||

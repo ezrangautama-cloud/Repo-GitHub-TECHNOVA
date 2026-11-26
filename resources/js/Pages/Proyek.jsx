@@ -1,39 +1,70 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import Navbar from '@/Components/Navbar';
 import Footer from '@/Components/Footer';
 import HardwareIllustration from '@/Components/HardwareIllustration';
 
-export default function Proyek() {
+const FALLBACK_PROJECTS = [
+    {
+        id: 1,
+        code: '01 IOT',
+        nama: 'Pemantauan Lingkungan ESP32',
+        meta: 'IoT · Sensor · Wi-Fi · Dasbor',
+        tingkat: 'Belum ditetapkan',
+        deskripsi: 'Sistem akuisisi data suhu, kelembaban, dan kualitas udara dengan sinkronisasi cloud real-time.'
+    },
+    {
+        id: 2,
+        code: '02 ENERGI',
+        nama: 'Pemantauan Energi PLTS',
+        meta: 'Pengukuran energi · Pencatatan data · PLTS',
+        tingkat: 'Belum ditetapkan',
+        deskripsi: 'Pencatatan produksi energi harian, efisiensi inverter, dan kalkulasi ROI pembangkit surya.'
+    },
+    {
+        id: 3,
+        code: '03 LAB',
+        nama: 'Instrumentasi Laboratorium Digital',
+        meta: 'DAQ · Sensor · Alur pembelajaran',
+        tingkat: 'Belum ditetapkan',
+        deskripsi: 'Modernisasi bangku praktikum teknik elektro dan instrumentasi dengan antarmuka digital terpusat.'
+    }
+];
+
+export default function Proyek({ initialProjects = null }) {
     const [selectedLevel, setSelectedLevel] = useState('Semua proyek');
     const [searchQuery, setSearchQuery] = useState('');
 
-    const projects = [
-        {
-            id: 1,
-            code: '01 IOT',
-            nama: 'Pemantauan Lingkungan ESP32',
-            meta: 'IoT · Sensor · Wi-Fi · Dasbor',
-            tingkat: 'Belum ditetapkan',
-            deskripsi: 'Sistem akuisisi data suhu, kelembaban, dan kualitas udara dengan sinkronisasi cloud real-time.'
-        },
-        {
-            id: 2,
-            code: '02 ENERGI',
-            nama: 'Pemantauan Energi PLTS',
-            meta: 'Pengukuran energi · Pencatatan data · PLTS',
-            tingkat: 'Belum ditetapkan',
-            deskripsi: 'Pencatatan produksi energi harian, efisiensi inverter, dan kalkulasi ROI pembangkit surya.'
-        },
-        {
-            id: 3,
-            code: '03 LAB',
-            nama: 'Instrumentasi Laboratorium Digital',
-            meta: 'DAQ · Sensor · Alur pembelajaran',
-            tingkat: 'Belum ditetapkan',
-            deskripsi: 'Modernisasi bangku praktikum teknik elektro dan instrumentasi dengan antarmuka digital terpusat.'
+    const mapProjectData = (item, idx) => ({
+        id: item.id || idx + 1,
+        code: `${String(idx + 1).padStart(2, '0')} ${(item.kategori || 'TEKNIK').toUpperCase()}`,
+        nama: item.judul_proyek || item.nama,
+        meta: item.teknologi || item.meta || item.kategori || 'Sistem Terintegrasi',
+        tingkat: item.tingkat || 'Siap Implementasi',
+        deskripsi: item.deskripsi || ''
+    });
+
+    const [projects, setProjects] = useState(() => {
+        if (Array.isArray(initialProjects) && initialProjects.length > 0) {
+            return initialProjects.map(mapProjectData);
         }
-    ];
+        return FALLBACK_PROJECTS;
+    });
+
+    useEffect(() => {
+        const params = new URLSearchParams();
+        if (searchQuery) params.set('q', searchQuery);
+        if (selectedLevel !== 'Semua proyek') params.set('category', selectedLevel);
+
+        fetch(`/api/portfolios?${params.toString()}`)
+            .then((res) => (res.ok ? res.json() : null))
+            .then((json) => {
+                if (Array.isArray(json?.data) && json.data.length > 0) {
+                    setProjects(json.data.map(mapProjectData));
+                }
+            })
+            .catch(() => {});
+    }, [searchQuery, selectedLevel]);
 
     const filteredProjects = projects.filter((item) => {
         const matchesSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||

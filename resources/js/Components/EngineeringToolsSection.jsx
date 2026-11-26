@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from '@inertiajs/react';
 
 export default function EngineeringToolsSection() {
     const [voltage, setVoltage] = useState(220);
@@ -130,12 +131,15 @@ export default function EngineeringToolsSection() {
                             </div>
 
                             <div class="mt-6">
-                                <a href="#calculators" class="inline-flex items-center gap-2 text-xs font-bold text-slate-900 hover:text-cyan-500 transition">
+                                <Link
+                                    href={activeTool === 0 ? '/alat/daya-listrik' : activeTool === 1 ? '/alat/plts' : '/alat/resistor-led'}
+                                    class="inline-flex items-center gap-2 text-xs font-bold text-slate-900 hover:text-cyan-500 transition"
+                                >
                                     <span>Explore all calculators</span>
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                                     </svg>
-                                </a>
+                                </Link>
                             </div>
                         </div>
                     </div>

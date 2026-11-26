@@ -36,41 +36,102 @@ export default function LayananSaya() {
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [toastMessage, setToastMessage] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [serviceOptions, setServiceOptions] = useState([
+        'Konsultasi IoT & ESP32',
+        'Pendampingan Kalibrasi Sensor',
+        'Konsultasi Dasar Elektronika & PCB',
+        'Modernisasi Laboratorium Digital',
+        'Audit Kapasitas PLTS',
+    ]);
 
     // Form state for Ajukan Layanan
     const [formData, setFormData] = useState({
-        tipe: 'Konsultasi IoT',
+        tipe: 'Konsultasi IoT & ESP32',
         deskripsi: '',
         whatsapp: '081234567890',
         email: 'nadia@technova.id'
     });
+
+    React.useEffect(() => {
+        fetch('/api/services')
+            .then((res) => (res.ok ? res.json() : null))
+            .then((json) => {
+                if (Array.isArray(json?.data) && json.data.length > 0) {
+                    const uniqueNames = [...new Set(json.data.map((s) => s.nama_produk))];
+                    if (uniqueNames.length > 0) {
+                        setServiceOptions(uniqueNames);
+                    }
+                }
+            })
+            .catch(() => {});
+    }, []);
 
     const showToast = (msg) => {
         setToastMessage(msg);
         setTimeout(() => setToastMessage(''), 3500);
     };
 
-    const handleFormSubmit = (e) => {
+    const handleFormSubmit = async (e) => {
         e.preventDefault();
         if (!formData.deskripsi.trim()) {
             showToast('Harap isi deskripsi kebutuhan layanan Anda.');
             return;
         }
 
-        const newReq = {
-            id: `REQ-0084${requests.length + 2}`,
-            title: formData.tipe,
-            subtitle: `Diajukan hari ini · ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`,
-            status: 'Menunggu balasan',
-            statusType: 'pending',
-            actionText: 'Balasan akan dikirim melalui email',
-            detail: formData.deskripsi
-        };
+        setIsSubmitting(true);
+        try {
+            const res = await fetch('/api/services/request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({
+                    tipe: formData.tipe,
+                    deskripsi: formData.deskripsi,
+                    email: formData.email,
+                    whatsapp: formData.whatsapp,
+                }),
+            });
 
-        setRequests([newReq, ...requests]);
-        setModalOpen(false);
-        setFormData({ ...formData, deskripsi: '' });
-        showToast('Permintaan layanan berhasil diajukan! Tim TECHNOVA akan segera menghubungi Anda.');
+            const json = await res.json();
+            const createdData = json?.data;
+            const newReqId = createdData?.id || `REQ-0084${requests.length + 2}`;
+
+            const newReq = {
+                id: newReqId,
+                title: formData.tipe,
+                subtitle: `Diajukan hari ini · ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`,
+                status: 'Menunggu balasan',
+                statusType: 'pending',
+                actionText: 'Balasan akan dikirim melalui email',
+                detail: formData.deskripsi
+            };
+
+            setRequests([newReq, ...requests]);
+            setModalOpen(false);
+            setFormData({ ...formData, deskripsi: '' });
+            showToast(`Permintaan layanan #${newReqId} berhasil diajukan! Tim TECHNOVA akan segera menghubungi Anda.`);
+        } catch {
+            // Local fallback
+            const fallbackId = `REQ-0084${requests.length + 2}`;
+            const newReq = {
+                id: fallbackId,
+                title: formData.tipe,
+                subtitle: `Diajukan hari ini · ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`,
+                status: 'Menunggu balasan',
+                statusType: 'pending',
+                actionText: 'Balasan akan dikirim melalui email',
+                detail: formData.deskripsi
+            };
+            setRequests([newReq, ...requests]);
+            setModalOpen(false);
+            setFormData({ ...formData, deskripsi: '' });
+            showToast(`Permintaan layanan #${fallbackId} berhasil disimpan.`);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -116,11 +177,11 @@ export default function LayananSaya() {
                                     onChange={(e) => setFormData({ ...formData, tipe: e.target.value })}
                                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400 font-medium"
                                 >
-                                    <option value="Konsultasi IoT">Konsultasi IoT & ESP32</option>
-                                    <option value="Pendampingan kalibrasi sensor">Pendampingan Kalibrasi Sensor</option>
-                                    <option value="Konsultasi dasar elektronika">Konsultasi Dasar Elektronika & PCB</option>
-                                    <option value="Modernisasi Laboratorium">Modernisasi Laboratorium Digital</option>
-                                    <option value="Audit Kapasitas PLTS">Audit Kapasitas PLTS</option>
+                                    {serviceOptions.map((opt, i) => (
+                                        <option key={i} value={opt}>
+                                            {opt}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
 
